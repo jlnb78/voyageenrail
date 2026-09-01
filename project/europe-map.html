@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte des lignes</title>
+<link rel="stylesheet" href="_ds/organic-6e9ee446-c364-4cdc-9649-91f5d953dd05/styles.css">
+<script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
+<style>
+html,body{height:100%}
+body{margin:0;background:var(--color-bg);overflow:hidden}
+#wrap{position:absolute;inset:0;display:flex}
+#stage{position:relative;flex:1;min-width:0}
+svg{display:block;width:100%;height:100%;cursor:grab}
+svg:active{cursor:grabbing}
+#panel{width:308px;flex:none;padding:26px 24px;overflow:auto;background:var(--color-surface);
+  border-radius:40px 0 0 40px;box-shadow:-8px 0 28px color-mix(in srgb,#2e2b25 8%,transparent)}
+body[data-panel="0"] #panel{display:none}
+.p-h{font-family:var(--font-heading);font-size:21px;margin:0 0 6px}
+.p-sub{font-size:12.5px;line-height:1.5;color:color-mix(in srgb,var(--color-text) 62%,transparent);margin:0 0 18px}
+.r-item{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;cursor:pointer;
+  padding:11px 13px;margin-bottom:6px;border:1px solid transparent;border-radius:20px;background:transparent;font:inherit;color:inherit}
+.r-item:hover{background:color-mix(in srgb,var(--color-text) 5%,transparent)}
+.r-item[aria-pressed="true"]{background:var(--color-accent-100);border-color:var(--color-accent-300)}
+.r-swatch{width:12px;height:12px;border-radius:50%;flex:none;margin-top:4px}
+.r-name{font-weight:600;font-size:13.5px;line-height:1.3}
+.r-meta{font-size:11.5px;color:color-mix(in srgb,var(--color-text) 55%,transparent);margin-top:3px}
+#tip{position:absolute;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--color-neutral-900);color:var(--color-neutral-100);font-size:12px;font-weight:600;
+  padding:6px 11px;border-radius:999px;white-space:nowrap;transform:translate(-50%,-140%)}
+#zoom{position:absolute;right:18px;bottom:18px;display:flex;gap:8px}
+#legend{position:absolute;left:18px;top:16px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  font-weight:600;color:color-mix(in srgb,var(--color-text) 50%,transparent)}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <svg id="map"></svg>
+    <div id="legend">Lignes testées · 2026</div>
+    <div id="tip"></div>
+    <div id="zoom">
+      <button class="btn btn-icon btn-secondary" id="zin" aria-label="Zoomer" style="background:var(--color-surface)">+</button>
+      <button class="btn btn-icon btn-secondary" id="zout" aria-label="Dézoomer" style="background:var(--color-surface)">−</button>
+    </div>
+  </div>
+  <aside id="panel">
+    <h2 class="p-h">Le réseau, ligne par ligne</h2>
+    <p class="p-sub">Huit itinéraires parcourus et documentés. Sélectionnez une ligne pour voir ses étapes.</p>
+    <div id="routes"></div>
+  </aside>
+</div>
+<script>
+const C = {
+  paris:[2.35,48.86], london:[-0.13,51.51], brussels:[4.35,50.85], amsterdam:[4.90,52.37],
+  cologne:[6.96,50.94], frankfurt:[8.68,50.11], strasbourg:[7.75,48.58], berlin:[13.40,52.52],
+  munich:[11.58,48.14], salzburg:[13.05,47.81], vienna:[16.37,48.21], budapest:[19.04,47.50],
+  ljubljana:[14.51,46.06], zagreb:[15.98,45.81], zurich:[8.54,47.38], milan:[9.19,45.46],
+  bologna:[11.34,44.49], florence:[11.26,43.77], rome:[12.50,41.90], genoa:[8.93,44.41],
+  ventimiglia:[7.60,43.79], nice:[7.27,43.70], marseille:[5.37,43.30], montpellier:[3.88,43.61],
+  lyon:[4.84,45.76], barcelona:[2.17,41.39], bordeaux:[-0.58,44.84], irun:[-1.79,43.34],
+  madrid:[-3.70,40.42], lisbon:[-9.14,38.72], hamburg:[9.99,53.55], copenhagen:[12.57,55.68],
+  stockholm:[18.06,59.33]
+};
+const HUBS = [['paris','Paris'],['london','Londres'],['amsterdam','Amsterdam'],['berlin','Berlin'],
+  ['vienna','Vienne'],['munich','Munich'],['zurich','Zurich'],['milan','Milan'],['rome','Rome'],
+  ['barcelona','Barcelone'],['madrid','Madrid'],['lisbon','Lisbonne'],['copenhagen','Copenhague'],
+  ['stockholm','Stockholm'],['marseille','Marseille']];
+const ROUTES = [
+  {id:'nightjet', name:'Nightjet Paris → Vienne', meta:'1 nuit · 14 h 10 · dès 79 €', accent:1,
+   pts:['paris','strasbourg','munich','salzburg','vienna']},
+  {id:'iberie', name:'Paris → Lisbonne', meta:'3 jours · 4 trains · dès 148 €', accent:1,
+   pts:['paris','bordeaux','irun','madrid','lisbon']},
+  {id:'barcelone', name:'Paris → Barcelone', meta:'6 h 42 · direct · dès 59 €', accent:1,
+   pts:['paris','lyon','montpellier','barcelona']},
+  {id:'riviera', name:'La ligne lente de la Riviera', meta:'Marseille → Gênes · 8 h · 38 €', accent:2,
+   pts:['marseille','nice','ventimiglia','genoa']},
+  {id:'italie', name:'Zurich → Rome', meta:'Par le Gothard · 10 h 05 · dès 64 €', accent:1,
+   pts:['zurich','milan','bologna','florence','rome']},
+  {id:'nord', name:'Amsterdam → Stockholm', meta:'2 jours · 1 couchette · dès 132 €', accent:2,
+   pts:['amsterdam','hamburg','copenhagen','stockholm']},
+  {id:'berlin', name:'Paris → Berlin de jour', meta:'8 h 05 · direct · dès 69 €', accent:1,
+   pts:['paris','strasbourg','frankfurt','berlin']},
+  {id:'danube', name:'Vienne → Zagreb', meta:'Par Ljubljana · 6 h 50 · 42 €', accent:2,
+   pts:['vienna','ljubljana','zagreb']},
+  {id:'eurostar', name:'Londres → Paris', meta:'2 h 16 · 8 départs / jour', accent:2,
+   pts:['london','brussels','paris']}
+];
+const A1 = '#c67139', A2 = '#7a8a5e';
+const params = new URLSearchParams(location.search);
+document.body.dataset.panel = params.get('panel') === '0' ? '0' : '1';
+
+const svg = d3.select('#map');
+const tip = document.getElementById('tip');
+let projection, path, g, selected = null;
+
+// MultiPoint corners, not a Polygon: d3's spherical winding rules would read a
+// lon/lat rectangle as the whole-globe complement and fit the world instead.
+const bboxFeature = {type:'Feature', geometry:{type:'MultiPoint', coordinates:[
+  [-11.5,36],[27,36],[27,60.5],[-11.5,60.5]
+]}};
+
+d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json').then(topo => {
+  const countries = topojson.feature(topo, topo.objects.countries);
+  const el = document.getElementById('stage');
+  const w = el.clientWidth, h = el.clientHeight;
+  svg.attr('viewBox', `0 0 ${w} ${h}`);
+  projection = d3.geoMercator().fitExtent([[-20,-10],[w+20,h+10]], bboxFeature);
+  path = d3.geoPath(projection);
+  g = svg.append('g');
+
+  g.append('g').selectAll('path').data(countries.features).join('path')
+    .attr('d', path).attr('fill', '#eee7db')
+    .attr('stroke', 'rgba(32,30,29,.14)').attr('stroke-width', .8);
+
+  const line = d3.line().x(d => projection(C[d])[0]).y(d => projection(C[d])[1]).curve(d3.curveCatmullRom.alpha(.6));
+
+  const rg = g.append('g').attr('fill','none').attr('stroke-linecap','round').attr('stroke-linejoin','round');
+  rg.selectAll('path.hit').data(ROUTES).join('path').attr('class','hit')
+    .attr('d', d => line(d.pts)).attr('stroke','transparent').attr('stroke-width',16)
+    .style('cursor','pointer')
+    .on('mousemove', (e,d) => { showTip(e, d.name); })
+    .on('mouseleave', hideTip)
+    .on('click', (e,d) => select(d.id === selected ? null : d.id));
+  rg.selectAll('path.route').data(ROUTES).join('path').attr('class','route')
+    .attr('id', d => 'r-' + d.id).style('pointer-events','none')
+    .attr('d', d => line(d.pts))
+    .attr('stroke', d => d.accent === 1 ? A1 : A2).attr('stroke-width', 2.4).attr('opacity', .9);
+
+  const stops = [...new Set(ROUTES.flatMap(r => r.pts))];
+  const cg = g.append('g').style('pointer-events','none');
+  cg.selectAll('circle').data(stops).join('circle')
+    .attr('cx', d => projection(C[d])[0]).attr('cy', d => projection(C[d])[1])
+    .attr('r', d => HUBS.some(hb => hb[0] === d) ? 4.2 : 2.6)
+    .attr('fill', '#f5ead8').attr('stroke', '#8c491a').attr('stroke-width', 1.6);
+  cg.selectAll('text').data(HUBS).join('text')
+    .attr('x', d => projection(C[d[0]])[0] + 8).attr('y', d => projection(C[d[0]])[1] + 3.5)
+    .text(d => d[1])
+    .attr('font-family','Figtree, system-ui, sans-serif').attr('font-size', 11.5)
+    .attr('font-weight', 600).attr('fill', '#474238')
+    .attr('paint-order','stroke').attr('stroke','#f5ead8').attr('stroke-width',3.5);
+
+  const zoom = d3.zoom().scaleExtent([1, 6]).on('zoom', e => g.attr('transform', e.transform));
+  svg.call(zoom);
+  d3.select('#zin').on('click', () => svg.transition().duration(250).call(zoom.scaleBy, 1.5));
+  d3.select('#zout').on('click', () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.5));
+
+  const list = d3.select('#routes');
+  list.selectAll('button').data(ROUTES).join('button')
+    .attr('class','r-item').attr('type','button').attr('aria-pressed','false')
+    .attr('id', d => 'btn-' + d.id)
+    .html(d => `<span class="r-swatch" style="background:${d.accent===1?A1:A2}"></span>
+      <span><span class="r-name">${d.name}</span><span class="r-meta" style="display:block">${d.meta}</span></span>`)
+    .on('click', (e,d) => select(d.id === selected ? null : d.id))
+    .on('mouseenter', (e,d) => emphasize(d.id))
+    .on('mouseleave', () => emphasize(selected));
+
+  if (params.get('route')) select(params.get('route'));
+});
+
+function emphasize(id){
+  d3.selectAll('path.route')
+    .attr('stroke-width', d => d.id === id ? 4.4 : 2.4)
+    .attr('opacity', d => !id ? .9 : (d.id === id ? 1 : .28));
+}
+function select(id){
+  selected = id;
+  emphasize(id);
+  document.querySelectorAll('.r-item').forEach(b => b.setAttribute('aria-pressed', b.id === 'btn-' + id));
+}
+function showTip(e, text){
+  const r = document.getElementById('stage').getBoundingClientRect();
+  tip.textContent = text;
+  tip.style.left = (e.clientX - r.left) + 'px';
+  tip.style.top = (e.clientY - r.top) + 'px';
+  tip.style.opacity = 1;
+}
+function hideTip(){ tip.style.opacity = 0; }
+</script>
+</body>
+</html>

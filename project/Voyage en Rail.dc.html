@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/organic-6e9ee446-c364-4cdc-9649-91f5d953dd05/styles.css">
+<script src="_ds/organic-6e9ee446-c364-4cdc-9649-91f5d953dd05/_ds_bundle.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:#e7dcc6;font-family:Figtree,system-ui,sans-serif;text-wrap:pretty}
+.sheet{padding:44px 48px 8px}
+.scr{padding:0 48px 52px;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px}
+.scr-lab{display:flex;align-items:baseline;gap:10px;font:400 11.5px/1.3 Figtree,system-ui,sans-serif;color:rgba(32,30,29,.6)}
+.scr-id{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 8px;background:#201e1d;color:#f5ead8;border-radius:5px;text-decoration:none}
+.scr:target .scr-id{background:#c67139}
+.nav a{white-space:nowrap}
+</style>
+</helmet>
+
+<div class="sheet">
+<div style="max-width:820px">
+<h1 style="font-family:Caprasimo,serif;font-size:40px;line-height:1.08;margin:0 0 14px;color:#201e1d">voyage en rail — maquettes UI</h1>
+<p style="font-size:15px;line-height:1.6;margin:0 0 10px;color:rgba(32,30,29,.78)">Six écrans desktop, en français, ton factuel et rassurant. La carte d'Europe est le héros : géométrie réelle (Natural Earth) et neuf lignes documentées, pas un dessin. Système visuel <strong>Organic</strong> — cream, terracotta, sage, Caprasimo sur Figtree, angles très arrondis, photos lavées.</p>
+<p style="font-size:14px;line-height:1.6;margin:0;color:rgba(32,30,29,.6)">Hypothèses prises : audience mixte (hésitants train/avion, communauté Instagram, familles) → le calculateur compare toujours avion et voiture, et chaque récit affiche son itinéraire réutilisable. Les photos sont des emplacements : glissez vos images dessus. Les chiffres sont plausibles mais à vérifier avant publication.</p>
+</div>
+</div>
+
+<div class="scr" id="s1">
+<div class="scr-lab"><a class="scr-id" href="#s1">S1</a>Accueil — la carte d'abord, puis les récits, le feed Instagram et la newsletter</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1280 }}" height="{{ 1936 }}" url="voyageenrail.fr" tabs="{{ tabAccueil }}" hint-size="1280px,1936px">
+<div style="height:100%;overflow:hidden;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif">
+
+<nav class="nav" style="padding:18px 40px">
+<span class="nav-brand" style="font-size:20px">voyage en rail</span>
+<a href="#s2">Carte</a>
+<a href="#s3">Calculateur</a>
+<a href="#s4">Récits</a>
+<a href="#s6">À propos</a>
+<button type="button" class="btn btn-secondary">@voyageenrail</button>
+</nav>
+
+<div style="position:relative;padding:34px 40px 0">
+<div style="position:absolute;right:-120px;top:-170px;width:380px;height:380px;border-radius:50%;background:#e1eecc"></div>
+<div style="position:relative;display:grid;grid-template-columns:1fr 620px;gap:48px;align-items:center">
+<div>
+<span style="display:block;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#8c491a;margin-bottom:16px">9 lignes parcourues · 41 récits</span>
+<h1 style="font-family:Caprasimo,serif;font-size:60px;line-height:1.07;margin:0 0 20px;letter-spacing:-.02em"><span style="display:block">L'Europe tient</span><span style="display:block">sur un réseau</span><span style="display:block;color:#8c491a">de rails.</span></h1>
+<p style="font-size:17px;line-height:1.62;max-width:42ch;margin:0 0 24px;color:rgba(32,30,29,.8)">Choisissez une ligne sur la carte : vous verrez les étapes, la durée réelle, le prix constaté et le CO₂ évité par rapport à l'avion. Tous les trajets ont été faits par nous.</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<button type="button" class="btn btn-primary" style="min-height:42px;padding-inline:22px;font-size:15px">Ouvrir la carte</button>
+<button type="button" class="btn btn-secondary" style="min-height:42px;padding-inline:22px;font-size:15px">Calculer un trajet</button>
+</div>
+</div>
+<div style="border-radius:48px;overflow:hidden;box-shadow:0 12px 32px rgba(46,43,37,.18);background:#f5ead8">
+<iframe src="europe-map.html?panel=0&amp;route=iberie" title="Carte des lignes ferroviaires en Europe" style="width:620px;height:440px;border:0;display:block"></iframe>
+</div>
+</div>
+</div>
+
+<div style="display:flex;gap:20px;align-items:center;padding:34px 40px 30px">
+<div style="width:168px;height:168px;border-radius:50%;background:#fff2eb;display:grid;place-content:center;text-align:center;padding:20px">
+<p style="font-family:Caprasimo,serif;font-size:38px;margin:0;color:#8c491a">−87 %</p>
+<p style="font-size:12px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;font-weight:600;margin:8px 0 0;color:rgba(32,30,29,.7)">de CO₂ face à l'avion</p>
+</div>
+<div style="width:148px;height:148px;border-radius:50%;background:#e1eecc;display:grid;place-content:center;text-align:center;padding:18px;transform:translateY(22px)">
+<p style="font-family:Caprasimo,serif;font-size:34px;margin:0;color:#3d472b">41</p>
+<p style="font-size:12px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;font-weight:600;margin:8px 0 0;color:rgba(32,30,29,.7)">récits publiés</p>
+</div>
+<div style="width:152px;height:152px;border-radius:50%;background:#ffe1d0;display:grid;place-content:center;text-align:center;padding:18px">
+<p style="font-family:Caprasimo,serif;font-size:34px;margin:0;color:#8c491a">18,4k</p>
+<p style="font-size:12px;line-height:1.35;letter-spacing:.05em;text-transform:uppercase;font-weight:600;margin:8px 0 0;color:rgba(32,30,29,.7)">abonnés Instagram</p>
+</div>
+<p style="flex:1;font-size:15px;line-height:1.62;margin:0 0 0 24px;max-width:34ch;color:rgba(32,30,29,.72)">Les calculs s'appuient sur les facteurs d'émission de l'ADEME et de l'AIE. La méthode est publiée, ligne par ligne, sur la page <a href="#s6" style="color:#8c491a;font-weight:600">À propos</a>.</p>
+</div>
+
+<div style="padding:14px 40px 0;display:flex;align-items:baseline;justify-content:space-between">
+<h2 style="font-family:Caprasimo,serif;font-size:30px;margin:0">Derniers récits</h2>
+<a href="#s4" style="font-size:14px;font-weight:600;color:#8c491a;text-decoration:none">Tous les récits →</a>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;padding:20px 40px 34px">
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:168px"><image-slot id="h-c1" shape="rect" src="assets/photo.jpg" style="width:100%;height:168px" placeholder="Couchette de nuit"></image-slot></div>
+<div style="padding:18px 20px 22px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Nuit · Autriche</span>
+<h3 class="card-title" style="font-size:19px">Paris → Vienne en couchette : ce qu'il faut savoir</h3>
+<p class="card-body">Départ 19 h 58, arrivée 10 h 08. Le prix réel, le confort par catégorie de place, et les deux erreurs de réservation à éviter.</p>
+<div class="card-meta"><span>14 min</span><span>·</span><span>−172 kg CO₂</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:168px"><image-slot id="h-c2" shape="rect" src="assets/train-suisse.jpg" style="width:100%;height:168px" placeholder="Côte ligure depuis le train"></image-slot></div>
+<div style="padding:18px 20px 22px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Régional · Italie</span>
+<h3 class="card-title" style="font-size:19px">Marseille → Gênes par la ligne lente</h3>
+<p class="card-body">Quatre trains régionaux, aucune réservation obligatoire. Huit heures, 38 € et la mer presque tout du long.</p>
+<div class="card-meta"><span>9 min</span><span>·</span><span>38 € constatés</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:168px"><image-slot id="h-c3" shape="rect" style="width:100%;height:168px" placeholder="Gare de Lisbonne"></image-slot></div>
+<div style="padding:18px 20px 22px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Grande traversée · Ibérie</span>
+<h3 class="card-title" style="font-size:19px">Paris → Lisbonne sans jamais décoller</h3>
+<p class="card-body">Trois jours, quatre trains, deux nuits d'hôtel. Les horaires qui s'enchaînent vraiment, avec les marges de correspondance.</p>
+<div class="card-meta"><span>22 min</span><span>·</span><span>Itinéraire fourni</span></div>
+</div>
+</div>
+</div>
+
+<sc-if value="{{ showInstagram }}" hint-placeholder-val="{{ true }}">
+<div style="padding:0 40px 34px">
+<div style="background:#f0fae1;border-radius:48px;padding:28px 32px">
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex:none"><image-slot id="ig-av" shape="circle" style="width:44px;height:44px" placeholder="Avatar"></image-slot></div>
+<div style="flex:1">
+<h3 style="font-family:Caprasimo,serif;font-size:22px;margin:0">@voyageenrail</h3>
+<p style="font-size:13px;margin:2px 0 0;color:rgba(32,30,29,.6)">18 412 abonnés · une photo par trajet, la légende dit toujours le prix</p>
+</div>
+<button type="button" class="btn btn-secondary">Suivre sur Instagram</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:14px">
+<div style="border-radius:24px;overflow:hidden;aspect-ratio:1" class="washed"><image-slot id="ig1" shape="rect" style="width:100%;height:100%" placeholder="Post"></image-slot></div>
+<div style="border-radius:24px;overflow:hidden;aspect-ratio:1" class="washed"><image-slot id="ig2" shape="rect" style="width:100%;height:100%" placeholder="Post"></image-slot></div>
+<div style="border-radius:24px;overflow:hidden;aspect-ratio:1" class="washed"><image-slot id="ig3" shape="rect" style="width:100%;height:100%" placeholder="Post"></image-slot></div>
+<div style="border-radius:24px;overflow:hidden;aspect-ratio:1" class="washed"><image-slot id="ig4" shape="rect" style="width:100%;height:100%" placeholder="Post"></image-slot></div>
+<div style="border-radius:24px;overflow:hidden;aspect-ratio:1" class="washed"><image-slot id="ig5" shape="rect" style="width:100%;height:100%" placeholder="Post"></image-slot></div>
+<div style="border-radius:24px;overflow:hidden;aspect-ratio:1" class="washed"><image-slot id="ig6" shape="rect" style="width:100%;height:100%" placeholder="Post"></image-slot></div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<div style="padding:0 40px 40px">
+<div style="background:#ebddc5;border-radius:48px;padding:32px 36px;display:grid;grid-template-columns:1fr 420px;gap:40px;align-items:center">
+<div>
+<h3 style="font-family:Caprasimo,serif;font-size:26px;margin:0 0 10px">Une ligne, un récit, une fois par mois</h3>
+<p style="font-size:15px;line-height:1.6;margin:0;max-width:48ch;color:rgba(32,30,29,.78)">Le récit du mois, les prix relevés et les changements d'horaires utiles. Pas de publicité, désinscription en un clic.</p>
+</div>
+<div style="display:flex;gap:12px;align-items:stretch">
+<input class="input" type="email" placeholder="vous@exemple.fr" aria-label="Adresse e-mail" style="flex:1;min-height:44px">
+<button type="button" class="btn btn-primary" style="min-height:44px;padding-inline:20px">S'inscrire</button>
+</div>
+</div>
+</div>
+
+<div style="padding:0 40px 26px;display:flex;gap:26px;font-size:13px;color:rgba(32,30,29,.6)">
+<span>© 2026 voyage en rail</span><a href="#s6" style="color:inherit">Méthode de calcul</a><a href="#s6" style="color:inherit">Mentions légales</a><a href="#s1" style="color:inherit">Instagram</a>
+</div>
+
+</div>
+</x-import>
+</div>
+
+<div class="scr" id="s2">
+<div class="scr-lab"><a class="scr-id" href="#s2">S2</a>Carte interactive — survol et clic sur une ligne, zoom, liste des itinéraires à droite</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1280 }}" height="{{ 880 }}" url="voyageenrail.fr/carte" tabs="{{ tabCarte }}" hint-size="1280px,880px">
+<div style="height:100%;display:flex;flex-direction:column;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif">
+<nav class="nav" style="padding:18px 40px;flex:none">
+<span class="nav-brand" style="font-size:20px">voyage en rail</span>
+<a href="#s2" aria-current="page">Carte</a>
+<a href="#s3">Calculateur</a>
+<a href="#s4">Récits</a>
+<a href="#s6">À propos</a>
+<button type="button" class="btn btn-secondary">@voyageenrail</button>
+</nav>
+<div style="flex:none;padding:0 40px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+<div>
+<h1 style="font-family:Caprasimo,serif;font-size:34px;margin:0 0 6px">Le réseau que nous avons parcouru</h1>
+<p style="font-size:14.5px;margin:0;max-width:62ch;color:rgba(32,30,29,.7)">Chaque ligne mène à son récit et à son itinéraire détaillé. Les durées sont celles relevées à bord, pas celles annoncées.</p>
+</div>
+<div class="seg" style="flex:none">
+<label class="seg-opt"><input type="radio" name="mapfilter" checked>Toutes</label>
+<label class="seg-opt"><input type="radio" name="mapfilter">Trains de nuit</label>
+<label class="seg-opt"><input type="radio" name="mapfilter">Sans réservation</label>
+</div>
+</div>
+<div style="flex:1;min-height:0;padding:0 40px 34px">
+<div style="height:100%;border-radius:44px;overflow:hidden;box-shadow:0 3px 10px rgba(46,43,37,.14)">
+<iframe src="europe-map.html?route=nightjet" title="Carte interactive des lignes" style="width:100%;height:100%;border:0;display:block"></iframe>
+</div>
+</div>
+</div>
+</x-import>
+</div>
+
+<div class="scr" id="s3">
+<div class="scr-lab"><a class="scr-id" href="#s3">S3</a>Calculateur — coût, CO₂ évité, comparaison avion et voiture, puis l'itinéraire en timeline</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1280 }}" height="{{ 1320 }}" url="voyageenrail.fr/calculateur?de=paris&amp;a=barcelone" tabs="{{ tabCalc }}" hint-size="1280px,1320px">
+<div style="height:100%;overflow:hidden;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif">
+<nav class="nav" style="padding:18px 40px">
+<span class="nav-brand" style="font-size:20px">voyage en rail</span>
+<a href="#s2">Carte</a>
+<a href="#s3" aria-current="page">Calculateur</a>
+<a href="#s4">Récits</a>
+<a href="#s6">À propos</a>
+<button type="button" class="btn btn-secondary">@voyageenrail</button>
+</nav>
+
+<div style="display:grid;grid-template-columns:392px 1fr;gap:36px;padding:16px 40px 36px;align-items:start">
+
+<div class="card" style="padding:28px 26px;gap:16px">
+<h2 style="font-family:Caprasimo,serif;font-size:24px;margin:0">Votre trajet</h2>
+<div class="field"><label>Départ</label><input class="input" value="Paris (toutes gares)" readonly></div>
+<div class="field"><label>Arrivée</label><input class="input" value="Barcelone Sants" readonly></div>
+<div style="display:flex;gap:12px">
+<div class="field" style="flex:1"><label>Aller</label><input class="input" value="14 avril 2026" readonly></div>
+<div class="field" style="flex:1"><label>Retour</label><input class="input" value="19 avril 2026" readonly></div>
+</div>
+<div style="display:flex;gap:12px">
+<div class="field" style="flex:1"><label>Voyageurs</label><input class="input" value="2 adultes, 1 enfant" readonly></div>
+<div class="field" style="flex:1"><label>Classe</label>
+<div class="seg" style="width:100%">
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="cls" checked>2ᵈᵉ</label>
+<label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="cls">1ʳᵉ</label>
+</div>
+</div>
+</div>
+<div style="margin-top:4px">
+<p style="font-size:12px;margin:0 0 8px;color:rgba(32,30,29,.7)">Comparer avec</p>
+<div style="display:flex;gap:16px;flex-wrap:wrap">
+<label class="radio"><input type="radio" name="cmp" checked><span class="dot"></span>Avion</label>
+<label class="radio"><input type="radio" name="cmp"><span class="dot"></span>Voiture</label>
+<label class="radio"><input type="radio" name="cmp"><span class="dot"></span>Les deux</label>
+</div>
+</div>
+<button type="button" class="btn btn-primary btn-block" style="min-height:44px;margin-top:10px">Recalculer</button>
+<p style="font-size:11.5px;line-height:1.5;margin:6px 0 0;color:rgba(32,30,29,.55)">Prix relevés le 2 mars 2026 sur les sites des opérateurs. Ils bougent ; c'est une estimation honnête, pas un devis.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:24px">
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+<div style="background:#ebddc5;border-radius:36px;padding:24px 26px">
+<p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 10px;color:rgba(32,30,29,.6)">Coût total, 3 voyageurs</p>
+<p style="font-family:Caprasimo,serif;font-size:42px;margin:0;line-height:1">327 €</p>
+<p style="font-size:13.5px;margin:8px 0 0;color:rgba(32,30,29,.7)">Aller-retour, 2ᵈᵉ classe, tarif réservé 3 semaines avant.</p>
+</div>
+<div style="background:#f0fae1;border-radius:36px;padding:24px 26px">
+<p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 10px;color:rgba(32,30,29,.6)">CO₂ évité</p>
+<p style="font-family:Caprasimo,serif;font-size:42px;margin:0;line-height:1;color:#3d472b">{{ co2Headline }}</p>
+<p style="font-size:13.5px;margin:8px 0 0;color:rgba(32,30,29,.7)">Par rapport au même trajet en avion, pour les trois voyageurs.</p>
+</div>
+<div style="background:#fff2eb;border-radius:36px;padding:24px 26px">
+<p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 10px;color:rgba(32,30,29,.6)">Durée porte à porte</p>
+<p style="font-family:Caprasimo,serif;font-size:42px;margin:0;line-height:1;color:#8c491a">7 h 10</p>
+<p style="font-size:13.5px;margin:8px 0 0;color:rgba(32,30,29,.7)">Contre 5 h 40 en avion, transferts et contrôles compris.</p>
+</div>
+</div>
+
+<div class="card" style="padding:28px 30px;gap:18px">
+<h3 style="font-family:Caprasimo,serif;font-size:22px;margin:0">Train, avion, voiture</h3>
+<div style="display:flex;flex-direction:column;gap:18px">
+<div>
+<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:7px"><span>Train — 6 h 42</span><span>13,8 kg CO₂e · 327 €</span></div>
+<div style="height:22px;background:rgba(32,30,29,.07);border-radius:999px;overflow:hidden"><div style="width:6%;height:100%;background:#7a8a5e;border-radius:999px"></div></div>
+</div>
+<div>
+<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:7px"><span>Avion — 1 h 55 de vol</span><span>231,0 kg CO₂e · 414 €</span></div>
+<div style="height:22px;background:rgba(32,30,29,.07);border-radius:999px;overflow:hidden"><div style="width:100%;height:100%;background:#c67139;border-radius:999px"></div></div>
+</div>
+<sc-if value="{{ showCar }}" hint-placeholder-val="{{ true }}">
+<div>
+<div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:7px"><span>Voiture — 10 h 20, 1 048 km</span><span>129,5 kg CO₂e · 289 € (péages et carburant)</span></div>
+<div style="height:22px;background:rgba(32,30,29,.07);border-radius:999px;overflow:hidden"><div style="width:56%;height:100%;background:#f6a06b;border-radius:999px"></div></div>
+</div>
+</sc-if>
+</div>
+<p style="font-size:12px;line-height:1.5;margin:2px 0 0;color:rgba(32,30,29,.58)">Facteurs ADEME 2025 : 2,4 g CO₂e/km·voyageur en TGV, 230 g en vol court-courrier avec traînées de condensation, 103 g en voiture thermique à 2,2 occupants. <a href="#s6" style="color:#8c491a;font-weight:600">Détail du calcul</a></p>
+</div>
+
+<div class="card" style="padding:28px 30px;gap:20px">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<h3 style="font-family:Caprasimo,serif;font-size:22px;margin:0">L'itinéraire, étape par étape</h3>
+<span class="tag tag-accent-2">1 changement recommandé</span>
+</div>
+<div style="display:flex;flex-direction:column">
+
+<div style="display:grid;grid-template-columns:74px 22px 1fr;gap:18px">
+<div style="text-align:right;font-size:14px"><p style="font-weight:700;margin:0">07 h 44</p><p style="margin:2px 0 0;color:rgba(32,30,29,.55)">Paris Lyon</p></div>
+<div style="position:relative"><div style="position:absolute;left:50%;top:7px;bottom:-6px;width:3px;transform:translateX(-50%);background:#c67139"></div><div style="position:relative;width:14px;height:14px;margin:5px auto 0;border-radius:50%;background:#f5ead8;border:3px solid #c67139"></div></div>
+<div style="padding-bottom:26px">
+<p style="font-weight:700;font-size:15px;margin:0 0 3px">TGV inOui 9712 · Paris → Barcelone</p>
+<p style="font-size:13.5px;line-height:1.55;margin:0;color:rgba(32,30,29,.72)">Direct, 6 h 42. Voiture 14, places côté fenêtre à gauche pour les étangs de Sète. Prise 220 V à chaque siège, wifi irrégulier après Perpignan.</p>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:74px 22px 1fr;gap:18px">
+<div style="text-align:right;font-size:14px"><p style="font-weight:700;margin:0">10 h 51</p><p style="margin:2px 0 0;color:rgba(32,30,29,.55)">Montpellier</p></div>
+<div style="position:relative"><div style="position:absolute;left:50%;top:0;bottom:-6px;width:3px;transform:translateX(-50%);background:#c67139"></div><div style="position:relative;width:10px;height:10px;margin:7px auto 0;border-radius:50%;background:#c67139"></div></div>
+<div style="padding-bottom:26px">
+<p style="font-weight:700;font-size:15px;margin:0 0 3px">Arrêt de 4 minutes</p>
+<p style="font-size:13.5px;line-height:1.55;margin:0;color:rgba(32,30,29,.72)">Pas de descente utile. Le bar-buffet ouvre ici et ferme une heure avant l'arrivée.</p>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:74px 22px 1fr;gap:18px">
+<div style="text-align:right;font-size:14px"><p style="font-weight:700;margin:0">14 h 26</p><p style="margin:2px 0 0;color:rgba(32,30,29,.55)">Barcelone Sants</p></div>
+<div style="position:relative"><div style="position:relative;width:14px;height:14px;margin:5px auto 0;border-radius:50%;background:#c67139;border:3px solid #c67139"></div></div>
+<div>
+<p style="font-weight:700;font-size:15px;margin:0 0 3px">Arrivée · métro L5 vers le centre en 9 minutes</p>
+<p style="font-size:13.5px;line-height:1.55;margin:0;color:rgba(32,30,29,.72)">Consigne à bagages au niveau −1, 5,20 € la journée. Les billets de métro s'achètent aux bornes du hall sud, moins de queue.</p>
+</div>
+</div>
+
+</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
+<button type="button" class="btn btn-primary">Réserver chez l'opérateur</button>
+<button type="button" class="btn btn-secondary">Enregistrer l'itinéraire</button>
+<button type="button" class="btn btn-ghost">Lire le récit de cette ligne</button>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</x-import>
+</div>
+
+<div class="scr" id="s4">
+<div class="scr-lab"><a class="scr-id" href="#s4">S4</a>Liste des récits — filtres par type de ligne, durée de lecture et pays</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1280 }}" height="{{ 1290 }}" url="voyageenrail.fr/recits" tabs="{{ tabRecits }}" hint-size="1280px,1290px">
+<div style="height:100%;overflow:hidden;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif">
+<nav class="nav" style="padding:18px 40px">
+<span class="nav-brand" style="font-size:20px">voyage en rail</span>
+<a href="#s2">Carte</a>
+<a href="#s3">Calculateur</a>
+<a href="#s4" aria-current="page">Récits</a>
+<a href="#s6">À propos</a>
+<button type="button" class="btn btn-secondary">@voyageenrail</button>
+</nav>
+
+<div style="padding:14px 40px 0">
+<h1 style="font-family:Caprasimo,serif;font-size:40px;margin:0 0 10px">41 récits, tous vérifiés à bord</h1>
+<p style="font-size:16px;line-height:1.6;max-width:64ch;margin:0 0 22px;color:rgba(32,30,29,.75)">Chaque récit indique la date du voyage, le prix payé et le CO₂ évité. Quand un horaire change, nous mettons le récit à jour et le signalons en tête.</p>
+<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-bottom:22px">
+<div class="seg">
+<label class="seg-opt"><input type="radio" name="f1" checked>Tous</label>
+<label class="seg-opt"><input type="radio" name="f1">Trains de nuit</label>
+<label class="seg-opt"><input type="radio" name="f1">Grandes traversées</label>
+<label class="seg-opt"><input type="radio" name="f1">Lignes lentes</label>
+</div>
+<span class="tag tag-outline">France</span>
+<span class="tag tag-neutral">Italie</span>
+<span class="tag tag-neutral">Espagne</span>
+<span class="tag tag-neutral">Autriche</span>
+<span class="tag tag-neutral">Scandinavie</span>
+<span style="margin-left:auto;font-size:13.5px;color:rgba(32,30,29,.6)">Trier : les plus récents</span>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px;padding:0 40px 30px">
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:186px"><image-slot id="r-1" shape="rect" src="assets/photo.jpg" style="width:100%;height:186px" placeholder="Photo du récit"></image-slot></div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Nuit · Autriche · mars 2026</span>
+<h3 class="card-title" style="font-size:19px">Paris → Vienne en couchette : ce qu'il faut savoir</h3>
+<p class="card-body">Départ 19 h 58, arrivée 10 h 08. Prix réel, confort par catégorie, et les deux erreurs de réservation à éviter.</p>
+<div class="card-meta"><span>14 min</span><span>·</span><span>−172 kg CO₂</span><span>·</span><span>79 €</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:186px"><image-slot id="r-2" shape="rect" style="width:100%;height:186px" placeholder="Photo du récit"></image-slot></div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Ligne lente · Italie · février 2026</span>
+<h3 class="card-title" style="font-size:19px">Marseille → Gênes par la côte, sans réserver</h3>
+<p class="card-body">Quatre régionaux, huit heures, la mer presque tout du long. Les horaires qui s'enchaînent et ceux qui piègent.</p>
+<div class="card-meta"><span>9 min</span><span>·</span><span>−96 kg CO₂</span><span>·</span><span>38 €</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:186px"><image-slot id="r-3" shape="rect" style="width:100%;height:186px" placeholder="Photo du récit"></image-slot></div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Grande traversée · Ibérie · janvier 2026</span>
+<h3 class="card-title" style="font-size:19px">Paris → Lisbonne sans jamais décoller</h3>
+<p class="card-body">Trois jours, quatre trains, deux nuits d'hôtel. Les marges de correspondance que nous conseillons vraiment.</p>
+<div class="card-meta"><span>22 min</span><span>·</span><span>−318 kg CO₂</span><span>·</span><span>148 €</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:186px"><image-slot id="r-4" shape="rect" src="assets/train-suisse.jpg" style="width:100%;height:186px" placeholder="Photo du récit"></image-slot></div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Famille · Suisse · janvier 2026</span>
+<h3 class="card-title" style="font-size:19px">Zurich → Rome avec deux enfants et un tunnel</h3>
+<p class="card-body">Dix heures de train faisables : où s'asseoir, quand manger, et pourquoi le Gothard occupe une heure entière.</p>
+<div class="card-meta"><span>11 min</span><span>·</span><span>−188 kg CO₂</span><span>·</span><span>64 €</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:186px"><image-slot id="r-5" shape="rect" style="width:100%;height:186px" placeholder="Photo du récit"></image-slot></div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Nuit · Scandinavie · décembre 2025</span>
+<h3 class="card-title" style="font-size:19px">Amsterdam → Stockholm en deux jours</h3>
+<p class="card-body">Une couchette, un ferry évité, un changement à Hambourg. Le trajet nord le plus simple à organiser.</p>
+<div class="card-meta"><span>16 min</span><span>·</span><span>−204 kg CO₂</span><span>·</span><span>132 €</span></div>
+</div>
+</div>
+<div class="card" style="padding:0;overflow:hidden">
+<div class="washed" style="height:186px"><image-slot id="r-6" shape="rect" style="width:100%;height:186px" placeholder="Photo du récit"></image-slot></div>
+<div style="padding:20px 22px 24px;display:flex;flex-direction:column;gap:9px">
+<span class="card-kicker">Ligne lente · Slovénie · novembre 2025</span>
+<h3 class="card-title" style="font-size:19px">Vienne → Zagreb, la traversée des Alpes juliennes</h3>
+<p class="card-body">Sept heures pour 42 €, un changement à Ljubljana et deux heures de vallée qui valent la fenêtre.</p>
+<div class="card-meta"><span>8 min</span><span>·</span><span>−58 kg CO₂</span><span>·</span><span>42 €</span></div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;justify-content:center;gap:10px;padding:0 40px 40px">
+<button type="button" class="btn btn-secondary" style="min-height:42px;padding-inline:24px">Voir 12 récits de plus</button>
+</div>
+</div>
+</x-import>
+</div>
+
+<div class="scr" id="s5">
+<div class="scr-lab"><a class="scr-id" href="#s5">S5</a>Article de récit — lecture en colonne, encart itinéraire réutilisable, publication Instagram liée</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1280 }}" height="{{ 2046 }}" url="voyageenrail.fr/recits/paris-vienne-couchette" tabs="{{ tabArticle }}" hint-size="1280px,2046px">
+<div style="height:100%;overflow:hidden;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif">
+<nav class="nav" style="padding:18px 40px">
+<span class="nav-brand" style="font-size:20px">voyage en rail</span>
+<a href="#s2">Carte</a>
+<a href="#s3">Calculateur</a>
+<a href="#s4" aria-current="page">Récits</a>
+<a href="#s6">À propos</a>
+<button type="button" class="btn btn-secondary">@voyageenrail</button>
+</nav>
+
+<div style="max-width:820px;padding:20px 40px 0">
+<span style="display:block;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#8c491a;margin-bottom:14px">Nuit · Autriche · voyage du 6 mars 2026</span>
+<h1 style="font-family:Caprasimo,serif;font-size:50px;line-height:1.08;margin:0 0 18px;letter-spacing:-.02em">Paris → Vienne en couchette : ce qu'il faut savoir</h1>
+<p style="font-size:19px;line-height:1.6;margin:0 0 18px;color:rgba(32,30,29,.8)">Quatorze heures de train, une nuit allongée, 79 € payés trois semaines avant. Voici le déroulé exact, ce qui vaut le supplément et ce qui n'en vaut pas.</p>
+<div style="display:flex;gap:18px;align-items:center;font-size:13.5px;color:rgba(32,30,29,.6);padding-bottom:22px">
+<span>14 min de lecture</span><span>·</span><span>Mis à jour le 12 mars 2026</span><span>·</span><span>−172 kg CO₂ face à l'avion</span>
+</div>
+</div>
+
+<div style="padding:0 40px 30px">
+<figure class="washed" style="margin:0;border-radius:48px;overflow:hidden">
+<image-slot id="art-hero" shape="rect" src="assets/photo.jpg" style="width:100%;height:420px" placeholder="Photo d'ouverture — la couchette au départ"></image-slot>
+</figure>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 360px;gap:52px;padding:0 40px 34px;align-items:start">
+<div>
+<p style="font-size:17px;line-height:1.72;margin:0 0 18px">Le Nightjet 468 quitte Paris Gare de l'Est à 19 h 58. Il faut être là vingt minutes avant : l'embarquement se fait voiture par voiture, un accompagnateur relève les billets sur le quai et il n'y a pas de contrôle à bord ensuite.</p>
+<p style="font-size:17px;line-height:1.72;margin:0 0 18px">Trois catégories de place se partagent le train. Le siège inclinable, à 39 €, se défend pour une seule nuit si vous dormez n'importe où. La couchette à six, à 79 €, est le meilleur rapport confort/prix : draps fournis, casier fermé sous la banquette, lavabo au bout du couloir. Le compartiment-lits, à partir de 189 €, ajoute une douche et le petit-déjeuner servi en cabine.</p>
+<blockquote style="font-family:Caprasimo,serif;font-size:26px;line-height:1.32;margin:26px 0;padding-left:24px;border-left:4px solid #c67139;color:#201e1d">On ne dort pas comme à l'hôtel. On dort assez pour arriver debout, ce qui est exactement ce qu'on demande à un train de nuit.</blockquote>
+<p style="font-size:17px;line-height:1.72;margin:0 0 18px">Deux erreurs de réservation reviennent souvent. La première : réserver une couchette « mixte » quand on voyage seul et vouloir en changer à bord — c'est possible mais payant, et souvent complet. La seconde : compter sur une correspondance à Munich de moins de trente minutes ; le train arrive régulièrement avec dix à quinze minutes de retard.</p>
+<p style="font-size:17px;line-height:1.72;margin:0 0 18px">Côté restauration, le bar ouvre jusqu'à 22 h 30 et rouvre à 6 h. Les prix sont ceux d'une gare, pas ceux d'un avion. Emportez de l'eau : c'est la seule chose qui manque vraiment.</p>
+<h2 style="font-family:Caprasimo,serif;font-size:28px;margin:30px 0 12px">Ce que ça coûte, vraiment</h2>
+<p style="font-size:17px;line-height:1.72;margin:0 0 18px">79 € la couchette, 12 € de dîner emporté, 4,20 € de métro à l'arrivée. Le même trajet en avion, réservé au même moment, ressortait à 143 € plus 26 € de transferts — et 198 kg de CO₂e contre 26 kg pour le train.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:22px;position:sticky;top:0">
+<div style="background:#ebddc5;border-radius:36px;padding:24px 24px 26px">
+<p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 14px;color:rgba(32,30,29,.6)">L'itinéraire de ce récit</p>
+<div style="display:flex;flex-direction:column">
+<div style="display:grid;grid-template-columns:16px 1fr;gap:14px">
+<div style="position:relative"><div style="position:absolute;left:50%;top:8px;bottom:-4px;width:3px;transform:translateX(-50%);background:#c67139"></div><div style="position:relative;width:12px;height:12px;margin:5px auto 0;border-radius:50%;background:#f5ead8;border:3px solid #c67139"></div></div>
+<div style="padding-bottom:20px"><p style="font-weight:700;font-size:14px;margin:0">19 h 58 · Paris Est</p><p style="font-size:13px;margin:2px 0 0;color:rgba(32,30,29,.7)">Nightjet 468, voiture 264, couchette à six</p></div>
+</div>
+<div style="display:grid;grid-template-columns:16px 1fr;gap:14px">
+<div style="position:relative"><div style="position:absolute;left:50%;top:0;bottom:-4px;width:3px;transform:translateX(-50%);background:#c67139"></div><div style="position:relative;width:9px;height:9px;margin:7px auto 0;border-radius:50%;background:#c67139"></div></div>
+<div style="padding-bottom:20px"><p style="font-weight:700;font-size:14px;margin:0">06 h 12 · Munich Hbf</p><p style="font-size:13px;margin:2px 0 0;color:rgba(32,30,29,.7)">Arrêt de 24 min, café sur le quai 12</p></div>
+</div>
+<div style="display:grid;grid-template-columns:16px 1fr;gap:14px">
+<div style="position:relative"><div style="position:absolute;left:50%;top:0;bottom:-4px;width:3px;transform:translateX(-50%);background:#c67139"></div><div style="position:relative;width:9px;height:9px;margin:7px auto 0;border-radius:50%;background:#c67139"></div></div>
+<div style="padding-bottom:20px"><p style="font-weight:700;font-size:14px;margin:0">08 h 01 · Salzbourg</p><p style="font-size:13px;margin:2px 0 0;color:rgba(32,30,29,.7)">Côté droit pour les montagnes</p></div>
+</div>
+<div style="display:grid;grid-template-columns:16px 1fr;gap:14px">
+<div><div style="width:12px;height:12px;margin:5px auto 0;border-radius:50%;background:#c67139;border:3px solid #c67139"></div></div>
+<div><p style="font-weight:700;font-size:14px;margin:0">10 h 08 · Vienne Hbf</p><p style="font-size:13px;margin:2px 0 0;color:rgba(32,30,29,.7)">U1 vers le centre, 6 min</p></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:9px;margin-top:16px">
+<button type="button" class="btn btn-primary btn-block" style="margin:0">Calculer pour mes dates</button>
+<button type="button" class="btn btn-secondary btn-block" style="margin:0">Voir la ligne sur la carte</button>
+</div>
+</div>
+
+<div style="background:#f0fae1;border-radius:36px;padding:22px 22px 24px">
+<div style="display:flex;align-items:center;gap:11px;margin-bottom:14px">
+<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex:none"><image-slot id="art-av" shape="circle" style="width:34px;height:34px" placeholder="Avatar"></image-slot></div>
+<div><p style="font-weight:700;font-size:13.5px;margin:0">@voyageenrail</p><p style="font-size:12px;margin:0;color:rgba(32,30,29,.6)">Publié le 7 mars</p></div>
+</div>
+<div class="washed" style="border-radius:24px;overflow:hidden;aspect-ratio:1"><image-slot id="art-ig" shape="rect" style="width:100%;height:100%" placeholder="Publication Instagram"></image-slot></div>
+<p style="font-size:13px;line-height:1.55;margin:12px 0 0;color:rgba(32,30,29,.75)">« 6 h 12, Munich. Vingt-quatre minutes pour un café sur le quai. 79 € la couchette. »</p>
+</div>
+</div>
+</div>
+
+<div style="padding:0 40px 40px">
+<div style="background:#ebddc5;border-radius:48px;padding:32px 36px;display:grid;grid-template-columns:1fr 420px;gap:40px;align-items:center">
+<div>
+<h3 style="font-family:Caprasimo,serif;font-size:26px;margin:0 0 10px">Un récit par mois, avec ses prix relevés</h3>
+<p style="font-size:15px;line-height:1.6;margin:0;max-width:48ch;color:rgba(32,30,29,.78)">Vous recevez le récit du mois et les changements d'horaires utiles. Désinscription en un clic.</p>
+</div>
+<div style="display:flex;gap:12px;align-items:stretch">
+<input class="input" type="email" placeholder="vous@exemple.fr" aria-label="Adresse e-mail" style="flex:1;min-height:44px">
+<button type="button" class="btn btn-primary" style="min-height:44px;padding-inline:20px">S'inscrire</button>
+</div>
+</div>
+</div>
+
+</div>
+</x-import>
+</div>
+
+<div class="scr" id="s6">
+<div class="scr-lab"><a class="scr-id" href="#s6">S6</a>À propos — qui écrit, et la méthode de calcul en clair (le point de confiance du site)</div>
+<x-import component-from-global-scope="ChromeWindow" from="./browser-window.jsx" width="{{ 1280 }}" height="{{ 1120 }}" url="voyageenrail.fr/a-propos" tabs="{{ tabApropos }}" hint-size="1280px,1120px">
+<div style="height:100%;overflow:hidden;background:#f5ead8;color:#201e1d;font-family:Figtree,system-ui,sans-serif">
+<nav class="nav" style="padding:18px 40px">
+<span class="nav-brand" style="font-size:20px">voyage en rail</span>
+<a href="#s2">Carte</a>
+<a href="#s3">Calculateur</a>
+<a href="#s4">Récits</a>
+<a href="#s6" aria-current="page">À propos</a>
+<button type="button" class="btn btn-secondary">@voyageenrail</button>
+</nav>
+
+<div style="display:grid;grid-template-columns:1fr 400px;gap:52px;padding:20px 40px 34px;align-items:start">
+<div>
+<h1 style="font-family:Caprasimo,serif;font-size:44px;line-height:1.08;margin:0 0 18px">Deux personnes, un abonnement ferroviaire, aucun partenariat</h1>
+<p style="font-size:17px;line-height:1.7;margin:0 0 16px;color:rgba(32,30,29,.82)">voyage en rail est un carnet public. Nous prenons les trains, nous payons nos billets, nous notons les horaires et les prix, puis nous écrivons. Le compte Instagram <strong>@voyageenrail</strong> publie la photo du jour ; le site garde ce qui doit rester consultable : les itinéraires et les calculs.</p>
+<p style="font-size:17px;line-height:1.7;margin:0 0 16px;color:rgba(32,30,29,.82)">Aucun opérateur ne nous rémunère et aucun lien de réservation n'est affilié. Quand un récit vieillit mal — ligne supprimée, prix envolé — nous le signalons en tête plutôt que de le retirer.</p>
+<h2 style="font-family:Caprasimo,serif;font-size:28px;margin:28px 0 12px">Comment nous calculons le CO₂</h2>
+<p style="font-size:17px;line-height:1.7;margin:0 0 18px;color:rgba(32,30,29,.82)">Le principe est simple : distance réelle du trajet × facteur d'émission par voyageur, pour chaque mode. Pour l'avion nous incluons les effets hors-CO₂ (traînées de condensation), qui doublent presque l'impact d'un vol court. Pour la voiture nous prenons 2,2 occupants, la moyenne observée en France sur les longs trajets.</p>
+<table class="table" style="margin-bottom:14px">
+<thead><tr><th>Mode</th><th>Facteur retenu</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>TGV / train grande vitesse</td><td>2,4 g CO₂e / km · voyageur</td><td>ADEME, Base Empreinte 2025</td></tr>
+<tr><td>Train régional</td><td>24,8 g CO₂e / km · voyageur</td><td>ADEME, Base Empreinte 2025</td></tr>
+<tr><td>Avion court-courrier</td><td>230 g CO₂e / km · voyageur</td><td>ADEME + forçage radiatif</td></tr>
+<tr><td>Voiture thermique</td><td>103 g CO₂e / km · voyageur</td><td>ADEME, 2,2 occupants</td></tr>
+</tbody>
+</table>
+<p style="font-size:13px;line-height:1.6;margin:0;color:rgba(32,30,29,.6)">Les facteurs sont revus une fois par an. Les prix, eux, sont datés dans chaque récit : ils ne sont pas recalculés automatiquement.</p>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:22px">
+<figure class="washed" style="margin:0;border-radius:48px;overflow:hidden">
+<image-slot id="ap-portrait" shape="rect" src="assets/train-suisse.jpg" style="width:100%;height:430px" placeholder="Portrait — vous deux, sur un quai"></image-slot>
+</figure>
+<div style="background:#f0fae1;border-radius:36px;padding:24px 26px">
+<h3 style="font-family:Caprasimo,serif;font-size:20px;margin:0 0 10px">Écrivez-nous</h3>
+<p style="font-size:14px;line-height:1.6;margin:0 0 14px;color:rgba(32,30,29,.78)">Une correction d'horaire, un prix qui a changé, une ligne à tester : tout arrive dans la même boîte, et nous répondons.</p>
+<button type="button" class="btn btn-primary btn-block" style="margin:0">bonjour@voyageenrail.fr</button>
+</div>
+<div style="background:#ebddc5;border-radius:36px;padding:24px 26px">
+<p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 12px;color:rgba(32,30,29,.6)">Données du site</p>
+<div style="display:flex;flex-direction:column;gap:9px;font-size:14px">
+<div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Récits publiés</span><strong>41</strong></div>
+<div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Lignes cartographiées</span><strong>9</strong></div>
+<div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Kilomètres en train</span><strong>34 800</strong></div>
+<div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Dernière mise à jour</span><strong>12 mars 2026</strong></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</x-import>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showInstagram&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Contenu&quot;},&quot;showCar&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Calculateur&quot;},&quot;co2Framing&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Kilogrammes&quot;,&quot;Pourcentage&quot;],&quot;default&quot;:&quot;Kilogrammes&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Calculateur&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const pct = this.props.co2Framing === "Pourcentage" ;
+    return {
+      showInstagram: this.props.showInstagram ?? true,
+      showCar: this.props.showCar ?? true,
+      co2Headline: pct ? "−94 %" : "651 kg",
+      tabAccueil: [{ title: "voyage en rail" }, { title: "Nightjet — réservation" }],
+      tabCarte: [{ title: "Carte des lignes" }, { title: "voyage en rail" }],
+      tabCalc: [{ title: "Calculateur — Paris → Barcelone" }, { title: "voyage en rail" }],
+      tabRecits: [{ title: "Récits" }, { title: "voyage en rail" }],
+      tabArticle: [{ title: "Paris → Vienne en couchette" }, { title: "voyage en rail" }],
+      tabApropos: [{ title: "À propos" }, { title: "voyage en rail" }]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
