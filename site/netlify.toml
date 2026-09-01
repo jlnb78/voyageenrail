@@ -1,0 +1,10 @@
+# The Astro project lives in site/, not the repo root — Netlify's
+# auto-detected settings don't know that, which is almost certainly why the
+# first deploy 404'd (it built/published from the wrong directory, or found
+# no package.json at all). This file makes the correct settings explicit and
+# takes precedence over whatever is set in the Netlify UI.
+
+[build]
+base = "site"
+command = "npm run build"
+publish = "dist"
