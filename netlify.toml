@@ -1,0 +1,8 @@
+# Must live at the repo root: with no Base directory configured in the
+# Netlify UI, this is the only place Netlify looks for build config by
+# default. It points the build at site/, where the actual Astro project is.
+
+[build]
+base = "site"
+command = "npm run build"
+publish = "dist"
