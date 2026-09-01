@@ -49,6 +49,19 @@ npm run preview   # serve the production build locally
 - `src/lib/calc.ts` — the cost/CO2/duration formulas behind `/calculateur`,
   shared between the server-rendered initial state and the client-side
   recompute script.
+- `src/lib/db-journeys.ts` — live "next real departures" lookup on
+  `/calculateur`, via `v6.db.transport.rest` (a free, no-signup public
+  wrapper around Deutsche Bahn's own journey search — chosen over Navitia
+  because Navitia's free tier only covers France, while DB's own search
+  resolves a lot of the site's cross-border European routes too, since DB
+  sells tickets on them). No API key exists or is needed, called directly
+  from the browser. Best-effort and additive only: it never replaces the
+  cost/CO2 estimate above it, and shows a plain "aucun résultat" message
+  rather than breaking when DB has no through-journey for a pair (several
+  of the 9 routes involve at least one train DB doesn't index) or the
+  service is unreachable. Only wired for routes with a single realistic
+  through-journey (`route.dbStations` in `routes.ts`) — the two multi-day,
+  multi-train routes (`iberie`, `nord`) don't have it, on purpose.
 - `src/lib/instagram.ts` — pulls the real @voyageenrail feed via the
   Instagram Graph API at build time. Needs a one-time, human-only setup
   step (an access token only the account owner can generate — see below);
@@ -114,6 +127,13 @@ of failing the build.
 
 ## Known gaps / next steps
 
+- The `db-journeys.ts` live lookup couldn't be tested end-to-end from the
+  environment it was built in (its network egress blocks
+  `v6.db.transport.rest`, same as it blocks the map's topojson CDN) — the
+  code follows the documented API shape and degrades to a plain "no
+  results" message on any failure, but it's worth confirming a real search
+  returns sensible results once deployed, especially the exact station name
+  strings in `routes.ts` (`dbStations`) resolving correctly.
 - **Newsletter form** posts nowhere yet — wire it to a provider (Buttondown,
   Mailchimp…) before launch.
 - Only 2 real photos exist yet (`public/images/`); the rest of the

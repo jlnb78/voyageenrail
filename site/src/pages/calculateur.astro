@@ -98,6 +98,22 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
         <p style="font-size:12px;line-height:1.5;margin:2px 0 0;color:rgba(32,30,29,.58)">Facteurs ADEME 2025 : {CO2_FACTORS.tgv.gPerKmPax} g CO₂e/km·voyageur en TGV, {CO2_FACTORS.avion.gPerKmPax} g en vol court-courrier avec traînées de condensation, {CO2_FACTORS.voiture.gPerKmPax} g en voiture thermique à 2,2 occupants ({CAR_G_PER_KM_VEHICLE.toFixed(1)} g/km au total du véhicule). <a href="/a-propos" style="color:#8c491a;font-weight:600">Détail du calcul</a></p>
       </div>
 
+      <div class="card" style="padding:28px 30px;gap:16px" data-out="dbcard" hidden>
+        <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <h3 style="font-size:22px;margin:0">Prochains départs réels</h3>
+          <span class="text-muted" style="font-size:11px">Recherche Deutsche Bahn — API communautaire, non officielle</span>
+        </div>
+        <p style="font-size:12.5px;line-height:1.5;margin:0;color:rgba(32,30,29,.65)">Horaires en direct pour vérifier qu'un train existe vraiment à peu près à cette heure — ça ne remplace pas la réservation, et certaines lignes (correspondances hors réseau DB) ne remontent aucun résultat même si elles existent.</p>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="field" style="flex:1;min-width:200px;margin:0">
+            <label for="db-when">À partir de</label>
+            <input class="input" id="db-when" type="datetime-local">
+          </div>
+          <button type="button" class="btn btn-secondary" id="db-search" style="min-height:36px">Chercher</button>
+        </div>
+        <div data-out="dbResults" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
       <div class="card" style="padding:28px 30px;gap:20px">
         <div style="display:flex;align-items:baseline;justify-content:space-between">
           <h3 style="font-size:22px;margin:0">L'itinéraire, étape par étape</h3>
@@ -120,6 +136,7 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
 <script>
   import { ROUTES, getRoute } from '../data/routes';
   import { calculate, formatEur, formatKg, formatDurationMin } from '../lib/calc';
+  import { findJourneys, type JourneySummary } from '../lib/db-journeys';
 
   const form = document.getElementById('calc-form') as HTMLFormElement;
   const routeSelect = document.getElementById('calc-route') as HTMLSelectElement;
@@ -194,6 +211,13 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
     } else {
       recitLink.hidden = true;
     }
+
+    // Real-schedule lookup only makes sense for a route with a single
+    // realistic through-journey — see routes.ts for why the multi-day ones
+    // don't have dbStations at all.
+    const dbCard = out('dbcard')!;
+    dbCard.hidden = !route.dbStations;
+    out('dbResults')!.innerHTML = '';
   }
 
   function renderItinerary(steps: import('../data/routes').ItineraryStep[]) {
@@ -228,6 +252,56 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
   form.addEventListener('submit', (e) => { e.preventDefault(); render(); });
   routeSelect.addEventListener('change', () => render());
   form.querySelectorAll('input[name="cls"], input[name="cmp"]').forEach((el) => el.addEventListener('change', render));
+
+  // --- Live schedule lookup (Deutsche Bahn, best-effort) ---
+  const dbWhenInput = document.getElementById('db-when') as HTMLInputElement | null;
+  const dbSearchBtn = document.getElementById('db-search') as HTMLButtonElement | null;
+
+  function toLocalDatetimeValue(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function formatClock(iso: string | null): string {
+    if (!iso) return '?';
+    return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function renderDbJourneys(journeys: JourneySummary[] | null) {
+    const wrap = out('dbResults')!;
+    wrap.innerHTML = '';
+    if (journeys === null) {
+      wrap.innerHTML = `<p style="font-size:13px;margin:0;color:rgba(32,30,29,.6)">Aucun résultat direct trouvé pour cette ligne à cette heure — service indisponible, ou ce trajet ne passe pas par le réseau que Deutsche Bahn indexe. Voir l'itinéraire documenté ci-dessous.</p>`;
+      return;
+    }
+    journeys.forEach((j) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;background:var(--color-bg);border-radius:16px;font-size:13.5px';
+      const lines = [...new Set(j.legs.map((l) => l.lineName).filter(Boolean))].join(', ');
+      row.innerHTML = `
+        <span><strong>${formatClock(j.departure)}</strong> → <strong>${formatClock(j.arrival)}</strong></span>
+        <span style="color:rgba(32,30,29,.65)">${j.changes} correspondance${j.changes > 1 ? 's' : ''}</span>
+        <span style="color:rgba(32,30,29,.65);text-align:right">${lines || '—'}</span>`;
+      wrap.appendChild(row);
+    });
+  }
+
+  async function searchDb() {
+    const route = getRoute(routeSelect.value) ?? ROUTES[0];
+    if (!route.dbStations || !dbWhenInput) return;
+    const wrap = out('dbResults')!;
+    wrap.innerHTML = `<p style="font-size:13px;margin:0;color:rgba(32,30,29,.6)">Recherche en cours…</p>`;
+    if (dbSearchBtn) dbSearchBtn.disabled = true;
+    try {
+      const whenISO = dbWhenInput.value ? new Date(dbWhenInput.value).toISOString() : new Date().toISOString();
+      const journeys = await findJourneys(route.dbStations.from, route.dbStations.to, whenISO);
+      renderDbJourneys(journeys);
+    } finally {
+      if (dbSearchBtn) dbSearchBtn.disabled = false;
+    }
+  }
+
+  if (dbWhenInput) dbWhenInput.value = toLocalDatetimeValue(new Date());
+  dbSearchBtn?.addEventListener('click', searchDb);
 
   // Land here from a récit or the map with ?route=nightjet and it's honoured
   // immediately, no reload needed.

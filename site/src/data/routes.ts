@@ -40,6 +40,11 @@ export type Route = {
   carDurationMin: number;
   carPriceBase: number; // one-way, tolls + fuel, per vehicle
   itinerary: ItineraryStep[];
+  // Real-world station names for live schedule lookups (src/lib/db-journeys.ts).
+  // Optional: when a route has no realistic single through-journey (a
+  // multi-day, multi-train trip), this is omitted on purpose rather than
+  // querying a search that can only return misleading partial results.
+  dbStations?: { from: string; to: string };
 };
 
 export const CITY_COORDS: Record<string, [number, number]> = {
@@ -75,6 +80,7 @@ export const ROUTES: Route[] = [
       { time: '08:01', place: 'Salzbourg', title: 'Traversée des Alpes bavaroises', desc: 'Côté droit pour les montagnes.', kind: 'stop' },
       { time: '10:08', place: 'Vienne Hbf', title: 'Arrivée · U1 vers le centre, 6 min', desc: 'Consigne à bagages disponible en gare.', kind: 'arrive' },
     ],
+    dbStations: { from: 'Paris Est', to: 'Wien Hbf' },
   },
   {
     id: 'iberie', name: 'Paris → Lisbonne', from: 'Paris', to: 'Lisbonne',
@@ -102,6 +108,7 @@ export const ROUTES: Route[] = [
       { time: '10:51', place: 'Montpellier', title: 'Arrêt de 4 minutes', desc: 'Pas de descente utile. Le bar-buffet ouvre ici et ferme une heure avant l’arrivée.', kind: 'stop' },
       { time: '14:26', place: 'Barcelone Sants', title: 'Arrivée · métro L5 vers le centre en 9 minutes', desc: 'Consigne à bagages au niveau −1, 5,20 € la journée. Les billets de métro s’achètent aux bornes du hall sud, moins de queue.', kind: 'arrive' },
     ],
+    dbStations: { from: 'Paris Gare de Lyon', to: 'Barcelona Sants' },
   },
   {
     id: 'riviera', name: 'La ligne lente de la Riviera', from: 'Marseille', to: 'Gênes',
@@ -116,6 +123,7 @@ export const ROUTES: Route[] = [
       { time: '11:35', place: 'Vintimille', title: 'Passage de frontière, changement pour un Trenitalia Regionale', desc: 'Billets italiens à composter avant de monter.', kind: 'stop' },
       { time: '16:18', place: 'Gênes Piazza Principe', title: 'Arrivée', desc: 'Huit heures, 38 € et la mer presque tout du long.', kind: 'arrive' },
     ],
+    dbStations: { from: 'Marseille Saint-Charles', to: 'Genova Piazza Principe' },
   },
   {
     id: 'italie', name: 'Zurich → Rome', from: 'Zurich', to: 'Rome',
@@ -130,6 +138,7 @@ export const ROUTES: Route[] = [
       { time: '12:35', place: 'Florence Santa Maria Novella', title: 'Arrêt de 6 minutes', desc: 'Vue sur le Duomo depuis le quai côté ville par temps clair.', kind: 'stop' },
       { time: '13:10', place: 'Rome Termini', title: 'Arrivée', desc: 'Dix heures de train faisables avec deux enfants, si l’on choisit bien où s’asseoir.', kind: 'arrive' },
     ],
+    dbStations: { from: 'Zürich HB', to: 'Roma Termini' },
   },
   {
     id: 'nord', name: 'Amsterdam → Stockholm', from: 'Amsterdam', to: 'Stockholm',
@@ -157,6 +166,7 @@ export const ROUTES: Route[] = [
       { time: '12:10', place: 'Francfort Hbf', title: 'Correspondance ICE', desc: 'Buffet et wifi fiable côté allemand.', kind: 'stop' },
       { time: '16:00', place: 'Berlin Hbf', title: 'Arrivée', desc: 'Huit heures, direct au changement près, un seul billet.', kind: 'arrive' },
     ],
+    dbStations: { from: 'Paris Est', to: 'Berlin Hbf' },
   },
   {
     id: 'danube', name: 'Vienne → Zagreb', from: 'Vienne', to: 'Zagreb',
@@ -170,6 +180,7 @@ export const ROUTES: Route[] = [
       { time: '13:05', place: 'Ljubljana', title: 'Changement, 35 min', desc: 'La traversée des Alpes juliennes se termine ici.', kind: 'stop' },
       { time: '15:20', place: 'Zagreb Glavni Kolodvor', title: 'Arrivée', desc: 'Sept heures pour 42 €, sans réservation obligatoire.', kind: 'arrive' },
     ],
+    dbStations: { from: 'Wien Hbf', to: 'Zagreb Glavni kolodvor' },
   },
   {
     id: 'eurostar', name: 'Londres → Paris', from: 'Londres', to: 'Paris',
@@ -182,6 +193,7 @@ export const ROUTES: Route[] = [
       { time: '08:31', place: 'London St Pancras', title: 'Eurostar vers Paris', desc: 'Contrôle des passeports avant l’embarquement, prévoir 45 minutes.', kind: 'depart' },
       { time: '11:47', place: 'Paris Gare du Nord', title: 'Arrivée', desc: 'Deux heures seize, huit départs par jour.', kind: 'arrive' },
     ],
+    dbStations: { from: 'London St Pancras', to: 'Paris Gare du Nord' },
   },
 ];
 
