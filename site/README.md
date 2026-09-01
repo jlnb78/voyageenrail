@@ -34,6 +34,18 @@ npm run preview   # serve the production build locally
   mockup's `europe-map.html` (D3 + real Natural Earth geometry via
   `world-atlas`) into a component driven by `routes.ts`, used inline on both
   the homepage (mini) and `/carte` (full, with the route list + filters).
+- `src/data/night-trains.ts` — a curated ~20-line reference layer of other
+  European night trains (Nightjet, European Sleeper, Snälltåget, Trenhotel,
+  PKP/EuroNight, Caledonian Sleeper…) that voyage en rail has **not**
+  personally ridden. Drawn thin and grey on `/carte`, clearly labeled "non
+  testées par nous", linking out to the operator instead of a récit — kept
+  deliberately separate from `routes.ts` so nothing invented (itinerary,
+  price, CO2) attaches to a line we haven't verified. Not exhaustive by
+  design (Back-on-Track tracks the full ~200-line European network); the
+  panel links there for anything beyond this list. Compiled from public
+  route announcements as of September 2026 — night train schedules change
+  often, re-verify before trusting an entry that's more than a few months
+  old.
 - `src/lib/calc.ts` — the cost/CO2/duration formulas behind `/calculateur`,
   shared between the server-rendered initial state and the client-side
   recompute script.
