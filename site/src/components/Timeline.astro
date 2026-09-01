@@ -1,0 +1,44 @@
+---
+import type { ItineraryStep } from '../data/routes';
+
+interface Props {
+  steps: ItineraryStep[];
+  compact?: boolean;
+}
+const { steps, compact = false } = Astro.props;
+const dot = (kind: ItineraryStep['kind']) => (kind === 'stop' ? compact ? 9 : 10 : compact ? 12 : 14);
+---
+<div style="display:flex;flex-direction:column">
+  {steps.map((step, i) => {
+    const isLast = i === steps.length - 1;
+    const size = dot(step.kind);
+    const filled = step.kind !== 'depart';
+    return (
+      <div style={`display:grid;grid-template-columns:${compact ? '16px' : '74px 22px'} 1fr;gap:${compact ? '14px' : '18px'}`}>
+        {!compact && (
+          <div style="text-align:right;font-size:14px">
+            <p style="font-weight:700;margin:0">{step.time}</p>
+            <p style="margin:2px 0 0;color:rgba(32,30,29,.55)">{step.place}</p>
+          </div>
+        )}
+        <div style="position:relative">
+          {!isLast && <div style={`position:absolute;left:50%;top:${step.kind === 'depart' ? '7px' : '0'};bottom:-6px;width:3px;transform:translateX(-50%);background:#c67139`}></div>}
+          <div style={`position:relative;width:${size}px;height:${size}px;margin:${step.kind === 'stop' ? '7px' : '5px'} auto 0;border-radius:50%;background:${filled ? '#c67139' : '#f5ead8'};border:${step.kind === 'stop' ? '0' : '3px solid #c67139'}`}></div>
+        </div>
+        <div style={isLast ? '' : 'padding-bottom:26px'}>
+          {compact ? (
+            <>
+              <p style="font-weight:700;font-size:14px;margin:0">{step.time} · {step.place}</p>
+              <p style="font-size:13px;margin:2px 0 0;color:rgba(32,30,29,.7)">{step.title}</p>
+            </>
+          ) : (
+            <>
+              <p style="font-weight:700;font-size:15px;margin:0 0 3px">{step.title}</p>
+              <p style="font-size:13.5px;line-height:1.55;margin:0;color:rgba(32,30,29,.72)">{step.desc}</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  })}
+</div>

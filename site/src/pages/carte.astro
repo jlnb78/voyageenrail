@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import EuropeMap from '../components/EuropeMap.astro';
+
+const initialRoute = Astro.url.searchParams.get('route') ?? 'nightjet';
+---
+<BaseLayout title="Carte des lignes — voyage en rail" description="Le réseau ferroviaire que nous avons parcouru : neuf lignes documentées, cliquables, avec leurs étapes.">
+  <div style="height:100vh;display:flex;flex-direction:column">
+    <Nav current="carte" />
+    <div class="page-pad" style="flex:none;padding-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+      <div>
+        <h1 style="font-size:34px;margin:0 0 6px">Le réseau que nous avons parcouru</h1>
+        <p style="font-size:14.5px;margin:0;max-width:62ch;color:rgba(32,30,29,.7)">Chaque ligne mène à son récit et à son itinéraire détaillé. Les durées sont celles relevées à bord, pas celles annoncées.</p>
+      </div>
+    </div>
+    <div class="page-pad" style="flex:1;min-height:0;padding-bottom:34px">
+      <div style="height:100%;border-radius:44px;overflow:hidden;box-shadow:0 3px 10px rgba(46,43,37,.14)">
+        <EuropeMap mode="full" initialRouteId={initialRoute} filterable />
+      </div>
+    </div>
+  </div>
+</BaseLayout>

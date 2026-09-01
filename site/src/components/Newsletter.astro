@@ -1,0 +1,36 @@
+---
+interface Props {
+  title?: string;
+  body?: string;
+}
+const {
+  title = 'Une ligne, un récit, une fois par mois',
+  body = "Le récit du mois, les prix relevés et les changements d'horaires utiles. Pas de publicité, désinscription en un clic.",
+} = Astro.props;
+---
+<div class="page-pad" style="padding-bottom:40px">
+  <div style="background:#ebddc5;border-radius:48px;padding:32px 36px;display:grid;grid-template-columns:1fr 420px;gap:40px;align-items:center">
+    <div>
+      <h3 style="font-size:26px;margin:0 0 10px">{title}</h3>
+      <p style="font-size:15px;line-height:1.6;margin:0;max-width:48ch;color:rgba(32,30,29,.78)">{body}</p>
+    </div>
+    <form class="newsletter-form" style="display:flex;gap:12px;align-items:stretch" data-newsletter>
+      <input class="input" type="email" name="email" required placeholder="vous@exemple.fr" aria-label="Adresse e-mail" style="flex:1;min-height:44px">
+      <button type="submit" class="btn btn-primary" style="min-height:44px;padding-inline:20px">S'inscrire</button>
+    </form>
+    <p class="newsletter-confirm text-muted" hidden style="grid-column:1/-1;font-size:13px;margin:-16px 0 0">Merci — vérifiez votre boîte mail pour confirmer l'inscription.</p>
+  </div>
+</div>
+<script>
+  // Front-end only for now: validates and gives feedback. Wire the `action`
+  // to a real provider (Buttondown, Mailchimp…) before launch — see README.
+  document.querySelectorAll<HTMLFormElement>('[data-newsletter]').forEach((form) => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const wrap = form.closest('div');
+      const confirm = wrap?.querySelector('.newsletter-confirm');
+      form.hidden = true;
+      confirm?.removeAttribute('hidden');
+    });
+  });
+</script>

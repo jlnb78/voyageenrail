@@ -1,0 +1,241 @@
+---
+// Real-geometry map of the 9 lines voyage en rail has ridden. Ported from the
+// mockup's europe-map.html (D3 + Natural Earth via world-atlas topojson) into
+// an inline component driven by src/data/routes.ts, instead of an iframe.
+import { ROUTES, CITY_COORDS, HUBS } from '../data/routes';
+import { formatDurationMin } from '../lib/calc';
+
+interface Props {
+  mode: 'mini' | 'full';
+  initialRouteId?: string | null;
+  filterable?: boolean;
+  /** Read `?route=` from the browser URL at runtime and prefer it over
+   * initialRouteId — needed because this is a statically-built site, so a
+   * link like /carte?route=nightjet can't be honoured at build time. */
+  respectQueryParam?: boolean;
+}
+const { mode, initialRouteId = null, filterable = mode === 'full', respectQueryParam = mode === 'full' } = Astro.props;
+const uid = `map-${Math.random().toString(36).slice(2, 8)}`;
+
+const routeSummaries = ROUTES.map((r) => {
+  const meta = r.multiDay
+    ? `${1 + r.multiDay.nights} jours · dès ${r.trainPriceBase2nd} €`
+    : `${formatDurationMin(r.trainDurationMin)} · dès ${r.trainPriceBase2nd} €`;
+  return { id: r.id, name: r.name, meta, accent: r.accent, tag: r.tag, pts: r.mapPts };
+});
+---
+<div class:list={["evr-map", mode]} data-uid={uid}>
+  <div class="evr-map-stage">
+    <svg class="evr-map-svg" role="img" aria-label="Carte des lignes ferroviaires en Europe"></svg>
+    <div class="evr-map-legend">Lignes testées · 2026</div>
+    <div class="evr-map-tip" aria-hidden="true"></div>
+    <div class="evr-map-zoom">
+      <button type="button" class="btn btn-icon btn-secondary" data-zin aria-label="Zoomer">+</button>
+      <button type="button" class="btn btn-icon btn-secondary" data-zout aria-label="Dézoomer">−</button>
+    </div>
+  </div>
+  {mode === 'full' && (
+    <aside class="evr-map-panel">
+      <h2 class="evr-map-h">Le réseau, ligne par ligne</h2>
+      <p class="evr-map-sub">Neuf itinéraires parcourus et documentés. Sélectionnez une ligne pour voir ses étapes.</p>
+      {filterable && (
+        <div class="seg" style="width:100%;margin-bottom:16px">
+          <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="toutes" checked>Toutes</label>
+          <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="nuit">Trains de nuit</label>
+          <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="sans-reservation">Sans réservation</label>
+        </div>
+      )}
+      <div class="evr-map-routes" data-routes-list></div>
+    </aside>
+  )}
+</div>
+
+<style>
+  .evr-map { position: relative; display: flex; height: 100%; min-height: 0; background: var(--color-bg); }
+  .evr-map-stage { position: relative; flex: 1; min-width: 0; }
+  .evr-map-svg { display: block; width: 100%; height: 100%; cursor: grab; }
+  .evr-map-svg:active { cursor: grabbing; }
+  .evr-map-panel {
+    width: 308px; flex: none; padding: 26px 24px; overflow: auto; background: var(--color-surface);
+    border-radius: 0 40px 40px 0; box-shadow: 8px 0 28px color-mix(in srgb, #2e2b25 8%, transparent);
+  }
+  .evr-map.mini .evr-map-zoom { display: none; }
+  .evr-map-h { font-family: var(--font-heading); font-size: 21px; margin: 0 0 6px; }
+  .evr-map-sub { font-size: 12.5px; line-height: 1.5; color: color-mix(in srgb, var(--color-text) 62%, transparent); margin: 0 0 18px; }
+  .evr-r-item {
+    display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; cursor: pointer;
+    padding: 11px 13px; margin-bottom: 6px; border: 1px solid transparent; border-radius: 20px;
+    background: transparent; font: inherit; color: inherit;
+  }
+  .evr-r-item:hover { background: color-mix(in srgb, var(--color-text) 5%, transparent); }
+  .evr-r-item[aria-pressed="true"] { background: var(--color-accent-100); border-color: var(--color-accent-300); }
+  .evr-r-swatch { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-top: 4px; }
+  .evr-r-name { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+  .evr-r-meta { font-size: 11.5px; color: color-mix(in srgb, var(--color-text) 55%, transparent); margin-top: 3px; display: block; }
+  .evr-map-tip {
+    position: absolute; pointer-events: none; opacity: 0; transition: opacity .12s;
+    background: var(--color-neutral-900); color: var(--color-neutral-100); font-size: 12px; font-weight: 600;
+    padding: 6px 11px; border-radius: 999px; white-space: nowrap; transform: translate(-50%,-140%); z-index: 2;
+  }
+  .evr-map-zoom { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 8px; }
+  .evr-map-legend {
+    position: absolute; left: 18px; top: 16px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+    font-weight: 600; color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  }
+  .evr-map.mini .evr-map-legend, .evr-map.mini .evr-map-tip { display: none; }
+</style>
+
+<script define:vars={{ uid, mode, initialRouteId, respectQueryParam, cityCoords: CITY_COORDS, hubs: HUBS, routes: routeSummaries }}>
+  // Deferred to a module-level init so multiple maps per page (home + carte
+  // are never on the same page, but keep it safe) don't collide.
+  window.__evrMapInit = window.__evrMapInit || [];
+  window.__evrMapInit.push({ uid, mode, initialRouteId, cityCoords, hubs, routes });
+</script>
+
+<script>
+  import { geoMercator, geoPath } from 'd3-geo';
+  import { select, selectAll } from 'd3-selection';
+  import { zoom as d3zoom } from 'd3-zoom';
+  import { line as d3line, curveCatmullRom } from 'd3-shape';
+  import { feature } from 'topojson-client';
+
+  const A1 = '#c67139';
+  const A2 = '#7a8a5e';
+
+  async function initMap(cfg) {
+    const root = document.querySelector(`[data-uid="${cfg.uid}"]`);
+    if (!root || root.dataset.evrInit) return;
+    root.dataset.evrInit = '1';
+
+    const svgEl = root.querySelector('.evr-map-svg');
+    const stageEl = root.querySelector('.evr-map-stage');
+    const tipEl = root.querySelector('.evr-map-tip');
+    const listEl = root.querySelector('[data-routes-list]');
+    const svg = select(svgEl);
+
+    const C = cfg.cityCoords;
+    const HUBS = cfg.hubs;
+    const ROUTES = cfg.routes;
+    let selected = cfg.initialRouteId || null;
+    if (cfg.respectQueryParam) {
+      const fromUrl = new URLSearchParams(location.search).get('route');
+      if (fromUrl && ROUTES.some((r) => r.id === fromUrl)) selected = fromUrl;
+    }
+    let activeFilter = 'toutes';
+
+    // MultiPoint corners, not a Polygon: d3's spherical winding rules would
+    // read a lon/lat rectangle as the whole-globe complement.
+    const bboxFeature = { type: 'Feature', geometry: { type: 'MultiPoint', coordinates: [
+      [-11.5, 36], [27, 36], [27, 60.5], [-11.5, 60.5],
+    ] } };
+
+    let topo;
+    try {
+      const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json');
+      topo = await res.json();
+    } catch {
+      return; // offline: leave the stage empty rather than throwing
+    }
+    const countries = feature(topo, topo.objects.countries);
+
+    const w = stageEl.clientWidth, h = stageEl.clientHeight;
+    svg.attr('viewBox', `0 0 ${w} ${h}`);
+    const projection = geoMercator().fitExtent([[-20, -10], [w + 20, h + 10]], bboxFeature);
+    const path = geoPath(projection);
+    const g = svg.append('g');
+
+    g.append('g').selectAll('path').data(countries.features).join('path')
+      .attr('d', path).attr('fill', '#eee7db')
+      .attr('stroke', 'rgba(32,30,29,.14)').attr('stroke-width', 0.8);
+
+    const lineGen = d3line().x((d) => projection(C[d])[0]).y((d) => projection(C[d])[1]).curve(curveCatmullRom.alpha(0.6));
+
+    function visibleRoutes() {
+      if (activeFilter === 'toutes') return ROUTES;
+      return ROUTES.filter((r) => r.tag === activeFilter);
+    }
+
+    const rg = g.append('g').attr('fill', 'none').attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    rg.selectAll('path.hit').data(ROUTES).join('path').attr('class', 'hit')
+      .attr('d', (d) => lineGen(d.pts)).attr('stroke', 'transparent').attr('stroke-width', 16)
+      .style('cursor', 'pointer')
+      .on('mousemove', (e, d) => showTip(e, d.name))
+      .on('mouseleave', hideTip)
+      .on('click', (e, d) => selectRoute(d.id === selected ? null : d.id));
+    rg.selectAll('path.route').data(ROUTES).join('path').attr('class', 'route')
+      .attr('id', (d) => `${cfg.uid}-r-${d.id}`).style('pointer-events', 'none')
+      .attr('d', (d) => lineGen(d.pts))
+      .attr('stroke', (d) => (d.accent === 1 ? A1 : A2)).attr('stroke-width', 2.4).attr('opacity', 0.9);
+
+    const stops = [...new Set(ROUTES.flatMap((r) => r.pts))];
+    const cg = g.append('g').style('pointer-events', 'none');
+    cg.selectAll('circle').data(stops).join('circle')
+      .attr('cx', (d) => projection(C[d])[0]).attr('cy', (d) => projection(C[d])[1])
+      .attr('r', (d) => (HUBS.some((hb) => hb[0] === d) ? 4.2 : 2.6))
+      .attr('fill', '#f5ead8').attr('stroke', '#8c491a').attr('stroke-width', 1.6);
+    cg.selectAll('text').data(HUBS).join('text')
+      .attr('x', (d) => projection(C[d[0]])[0] + 8).attr('y', (d) => projection(C[d[0]])[1] + 3.5)
+      .text((d) => d[1])
+      .attr('font-family', 'Figtree, system-ui, sans-serif').attr('font-size', 11.5)
+      .attr('font-weight', 600).attr('fill', '#474238')
+      .attr('paint-order', 'stroke').attr('stroke', '#f5ead8').attr('stroke-width', 3.5);
+
+    const zoomBehavior = d3zoom().scaleExtent([1, 6]).on('zoom', (e) => g.attr('transform', e.transform));
+    svg.call(zoomBehavior);
+    root.querySelector('[data-zin]')?.addEventListener('click', () => svg.transition().duration(250).call(zoomBehavior.scaleBy, 1.5));
+    root.querySelector('[data-zout]')?.addEventListener('click', () => svg.transition().duration(250).call(zoomBehavior.scaleBy, 1 / 1.5));
+
+    function renderList() {
+      if (!listEl) return;
+      const vis = visibleRoutes();
+      listEl.innerHTML = '';
+      vis.forEach((d) => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'evr-r-item'; btn.id = `${cfg.uid}-btn-${d.id}`;
+        btn.setAttribute('aria-pressed', String(d.id === selected));
+        btn.innerHTML = `<span class="evr-r-swatch" style="background:${d.accent === 1 ? A1 : A2}"></span>
+          <span><span class="evr-r-name">${d.name}</span><span class="evr-r-meta">${d.meta}</span></span>`;
+        btn.addEventListener('click', () => selectRoute(d.id === selected ? null : d.id));
+        btn.addEventListener('mouseenter', () => emphasize(d.id));
+        btn.addEventListener('mouseleave', () => emphasize(selected));
+        listEl.appendChild(btn);
+      });
+      // routes hidden by the filter still get de-emphasized on the map
+      emphasize(selected);
+    }
+
+    function emphasize(id) {
+      const vis = new Set(visibleRoutes().map((r) => r.id));
+      selectAll(rg.node().querySelectorAll('path.route'))
+        .attr('stroke-width', (d) => (d.id === id ? 4.4 : 2.4))
+        .attr('opacity', (d) => (!vis.has(d.id) ? 0.08 : !id ? 0.9 : d.id === id ? 1 : 0.28));
+    }
+    function selectRoute(id) {
+      selected = id;
+      emphasize(id);
+      root.querySelectorAll('.evr-r-item').forEach((b) => b.setAttribute('aria-pressed', String(b.id === `${cfg.uid}-btn-${id}`)));
+      root.dispatchEvent(new CustomEvent('evr-route-select', { detail: { id } }));
+    }
+    function showTip(e, text) {
+      const r = stageEl.getBoundingClientRect();
+      tipEl.textContent = text;
+      tipEl.style.left = `${e.clientX - r.left}px`;
+      tipEl.style.top = `${e.clientY - r.top}px`;
+      tipEl.style.opacity = '1';
+    }
+    function hideTip() { tipEl.style.opacity = '0'; }
+
+    root.querySelectorAll(`input[name="${cfg.uid}-filter"]`).forEach((el) => {
+      el.addEventListener('change', (e) => {
+        activeFilter = e.target.value;
+        renderList();
+      });
+    });
+
+    renderList();
+    if (selected) selectRoute(selected);
+  }
+
+  (window.__evrMapInit || []).forEach(initMap);
+  window.__evrMapInit = { push: initMap };
+</script>

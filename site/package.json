@@ -1,0 +1,21 @@
+{
+  "name": "voyage-en-rail",
+  "version": "1.0.0",
+  "private": true,
+  "description": "voyage en rail — carnet de voyages en train, calculateur coût/CO2, carte des lignes",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.18.2",
+    "d3-geo": "^3.1.1",
+    "d3-selection": "^3.0.0",
+    "d3-shape": "^3.2.0",
+    "d3-zoom": "^3.0.0",
+    "topojson-client": "^3.1.0"
+  }
+}

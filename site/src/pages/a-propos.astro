@@ -1,0 +1,56 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import { CO2_FACTORS } from '../data/co2-factors';
+import { ROUTES } from '../data/routes';
+
+const allRecits = await getCollection('recits');
+const totalTrainKm = ROUTES.reduce((sum, r) => sum + r.trainKm, 0);
+const lastUpdated = allRecits
+  .map((r) => r.data.dateUpdated ?? r.data.dateTravelled)
+  .sort((a, b) => b.valueOf() - a.valueOf())[0]
+  .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+<BaseLayout title="À propos — voyage en rail" description="Qui écrit voyage en rail, et comment nous calculons le CO2 évité — la méthode publiée en clair.">
+  <Nav current="a-propos" />
+
+  <div class="page-pad" style="display:grid;grid-template-columns:1fr 400px;gap:52px;padding-top:20px;padding-bottom:34px;align-items:start">
+    <div>
+      <h1 style="font-size:44px;line-height:1.08;margin:0 0 18px">Deux personnes, un abonnement ferroviaire, aucun partenariat</h1>
+      <p style="font-size:17px;line-height:1.7;margin:0 0 16px;color:rgba(32,30,29,.82)">voyage en rail est un carnet public. Nous prenons les trains, nous payons nos billets, nous notons les horaires et les prix, puis nous écrivons. Le compte Instagram <strong>@voyageenrail</strong> publie la photo du jour ; le site garde ce qui doit rester consultable : les itinéraires et les calculs.</p>
+      <p style="font-size:17px;line-height:1.7;margin:0 0 16px;color:rgba(32,30,29,.82)">Aucun opérateur ne nous rémunère et aucun lien de réservation n'est affilié. Quand un récit vieillit mal — ligne supprimée, prix envolé — nous le signalons en tête plutôt que de le retirer.</p>
+      <h2 style="font-size:28px;margin:28px 0 12px">Comment nous calculons le CO₂</h2>
+      <p style="font-size:17px;line-height:1.7;margin:0 0 18px;color:rgba(32,30,29,.82)">Le principe est simple : distance réelle du trajet × facteur d'émission par voyageur, pour chaque mode. Pour l'avion nous incluons les effets hors-CO₂ (traînées de condensation), qui doublent presque l'impact d'un vol court. Pour la voiture nous prenons 2,2 occupants, la moyenne observée en France sur les longs trajets, appliquée à un seul véhicule quel que soit le nombre de voyageurs qu'il transporte.</p>
+      <table class="table" style="margin-bottom:14px">
+        <thead><tr><th>Mode</th><th>Facteur retenu</th><th>Source</th></tr></thead>
+        <tbody>
+          {Object.values(CO2_FACTORS).map((f) => (
+            <tr><td>{f.label}</td><td>{f.gPerKmPax} g CO₂e / km · voyageur</td><td>{f.source}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <p style="font-size:13px;line-height:1.6;margin:0;color:rgba(32,30,29,.6)">Les facteurs sont revus une fois par an, dans <code>src/data/co2-factors.ts</code>. Les prix, eux, sont datés dans chaque récit : ils ne sont pas recalculés automatiquement.</p>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <figure class="washed" style="margin:0;border-radius:48px;overflow:hidden;background:var(--color-neutral-200)">
+        <img src="/images/train-suisse.jpg" alt="Portrait — voiture panoramique d'un train suisse" style="width:100%;height:430px;object-fit:cover;display:block">
+      </figure>
+      <div style="background:#f0fae1;border-radius:36px;padding:24px 26px">
+        <h3 style="font-size:20px;margin:0 0 10px">Écrivez-nous</h3>
+        <p style="font-size:14px;line-height:1.6;margin:0 0 14px;color:rgba(32,30,29,.78)">Une correction d'horaire, un prix qui a changé, une ligne à tester : tout arrive dans la même boîte, et nous répondons.</p>
+        <a href="mailto:bonjour@voyageenrail.fr" class="btn btn-primary btn-block" style="margin:0">bonjour@voyageenrail.fr</a>
+      </div>
+      <div style="background:#ebddc5;border-radius:36px;padding:24px 26px">
+        <p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 12px;color:rgba(32,30,29,.6)">Données du site</p>
+        <div style="display:flex;flex-direction:column;gap:9px;font-size:14px">
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Récits publiés</span><strong>{allRecits.length}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Lignes cartographiées</span><strong>{ROUTES.length}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Kilomètres en train</span><strong>{totalTrainKm.toLocaleString('fr-FR')}</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:rgba(32,30,29,.7)">Dernière mise à jour</span><strong>{lastUpdated}</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

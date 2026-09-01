@@ -1,0 +1,82 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import RecitCard from '../../components/RecitCard.astro';
+
+const allRecits = (await getCollection('recits')).sort(
+  (a, b) => b.data.dateTravelled.valueOf() - a.data.dateTravelled.valueOf()
+);
+const countries = [...new Set(allRecits.map((r) => r.data.country))];
+---
+<BaseLayout title="Récits — voyage en rail" description={`${allRecits.length} récits de voyage en train, tous vérifiés à bord : prix payé, CO2 évité, horaires réels.`}>
+  <Nav current="recits" />
+
+  <div class="page-pad" style="padding-top:14px">
+    <h1 style="font-size:40px;margin:0 0 10px">{allRecits.length} récits, tous vérifiés à bord</h1>
+    <p style="font-size:16px;line-height:1.6;max-width:64ch;margin:0 0 22px;color:rgba(32,30,29,.75)">Chaque récit indique la date du voyage, le prix payé et le CO₂ évité. Quand un horaire change, nous mettons le récit à jour et le signalons en tête.</p>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding-bottom:22px" data-recits-filters>
+      <div class="seg">
+        <label class="seg-opt"><input type="radio" name="f1" value="tous" checked>Tous</label>
+        <label class="seg-opt"><input type="radio" name="f1" value="nuit">Trains de nuit</label>
+        <label class="seg-opt"><input type="radio" name="f1" value="traversee">Grandes traversées</label>
+        <label class="seg-opt"><input type="radio" name="f1" value="lente">Lignes lentes</label>
+      </div>
+      {countries.map((c, i) => (
+        <button type="button" class={`tag ${i === 0 ? 'tag-outline' : 'tag-neutral'}`} data-country={c} aria-pressed="false">{c}</button>
+      ))}
+      <span style="margin-left:auto;font-size:13.5px;color:rgba(32,30,29,.6)">Trier : les plus récents</span>
+    </div>
+  </div>
+
+  <div class="page-pad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px;padding-bottom:30px" data-recits-grid>
+    {allRecits.map((recit) => (
+      <div data-filter-tag={recit.data.filterTag} data-country={recit.data.country}>
+        <RecitCard recit={recit} showPrice imageHeight={186} />
+      </div>
+    ))}
+  </div>
+
+  <p class="page-pad text-muted" data-no-results hidden style="padding-bottom:30px">Aucun récit ne correspond à ces filtres pour l'instant.</p>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  const grid = document.querySelector('[data-recits-grid]');
+  const items = Array.from(grid?.querySelectorAll<HTMLElement>('[data-filter-tag]') ?? []);
+  const noResults = document.querySelector<HTMLElement>('[data-no-results]');
+  const countryButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-country]'));
+  let tagFilter = 'tous';
+  let countryFilter: string | null = null;
+
+  function apply() {
+    let visible = 0;
+    items.forEach((el) => {
+      const matchesTag = tagFilter === 'tous' || el.dataset.filterTag === tagFilter;
+      const matchesCountry = !countryFilter || el.dataset.country === countryFilter;
+      const show = matchesTag && matchesCountry;
+      el.hidden = !show;
+      if (show) visible += 1;
+    });
+    if (noResults) noResults.hidden = visible > 0;
+  }
+
+  document.querySelectorAll<HTMLInputElement>('input[name="f1"]').forEach((el) => {
+    el.addEventListener('change', () => { tagFilter = el.value; apply(); });
+  });
+  countryButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const isActive = countryFilter === btn.dataset.country;
+      countryFilter = isActive ? null : (btn.dataset.country ?? null);
+      countryButtons.forEach((b) => {
+        const active = b.dataset.country === countryFilter;
+        b.setAttribute('aria-pressed', String(active));
+        b.classList.toggle('tag-outline', active);
+        b.classList.toggle('tag-neutral', !active);
+      });
+      apply();
+    });
+  });
+</script>

@@ -1,0 +1,31 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatEur } from '../lib/calc';
+
+interface Props {
+  recit: CollectionEntry<'recits'>;
+  showPrice?: boolean;
+  imageHeight?: number;
+}
+const { recit, showPrice = false, imageHeight = 168 } = Astro.props;
+const d = recit.data;
+const monthLabel = d.dateTravelled.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+---
+<a class="card recit-card" href={`/recits/${recit.slug}`} style="padding:0;overflow:hidden;text-decoration:none;color:inherit;display:block">
+  <div class="washed" style={`height:${imageHeight}px;background:var(--color-neutral-200)`}>
+    {d.coverImage ? (
+      <img src={d.coverImage} alt={d.coverAlt} style={`width:100%;height:${imageHeight}px;object-fit:cover;display:block`} loading="lazy">
+    ) : (
+      <div style={`width:100%;height:${imageHeight}px;display:flex;align-items:center;justify-content:center;color:color-mix(in srgb, var(--color-text) 45%, transparent);font-size:12.5px;text-align:center;padding:0 16px`}>{d.coverAlt}</div>
+    )}
+  </div>
+  <div style="padding:18px 20px 22px;display:flex;flex-direction:column;gap:9px">
+    <span class="card-kicker">{d.kickerType} · {d.country}{showPrice ? ` · ${monthLabel}` : ''}</span>
+    <h3 class="card-title" style="font-size:19px">{d.title}</h3>
+    <p class="card-body">{d.excerpt}</p>
+    <div class="card-meta">
+      <span>{d.readMinutes} min</span><span>·</span><span>−{d.co2AvoidedKg} kg CO₂</span>
+      {showPrice && <><span>·</span><span>{formatEur(d.priceEur)}</span></>}
+    </div>
+  </div>
+</a>

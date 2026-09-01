@@ -1,0 +1,15 @@
+---
+interface Props {
+  current?: 'accueil' | 'carte' | 'calculateur' | 'recits' | 'a-propos';
+}
+const { current } = Astro.props;
+const cur = (id: string) => (current === id ? 'page' : undefined);
+---
+<nav class="nav page-pad" style="padding-top:18px;padding-bottom:18px">
+  <a class="nav-brand" href="/">voyage en rail</a>
+  <a href="/carte" aria-current={cur('carte')}>Carte</a>
+  <a href="/calculateur" aria-current={cur('calculateur')}>Calculateur</a>
+  <a href="/recits" aria-current={cur('recits')}>Récits</a>
+  <a href="/a-propos" aria-current={cur('a-propos')}>À propos</a>
+  <a class="btn btn-secondary" href="https://instagram.com/voyageenrail" target="_blank" rel="noopener">@voyageenrail</a>
+</nav>
