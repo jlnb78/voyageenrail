@@ -1,8 +1,23 @@
-import type { Route } from '../data/routes';
 import { CO2_FACTORS, CAR_G_PER_KM_VEHICLE, CAR_MAX_OCCUPANTS_PER_VEHICLE, ACCESS_BUFFER_MIN } from '../data/co2-factors';
 
+// Only the fields the estimate model actually reads — a real Route (routes.ts)
+// satisfies this structurally, but so does a synthetic one built on the fly
+// by estimateRouteFromDistance() below for an arbitrary point A to point B.
+export type RouteEstimateInput = {
+  tag: 'nuit' | 'sans-reservation' | 'standard';
+  trainKm: number;
+  trainDurationMin: number;
+  trainPriceBase2nd: number;
+  planeKm: number;
+  planeFlightMin: number;
+  planePriceBase: number;
+  carKm: number;
+  carDurationMin: number;
+  carPriceBase: number;
+};
+
 export type CalcInput = {
-  route: Route;
+  route: RouteEstimateInput;
   adults: number;
   children: number;
   travelClass: '2de' | '1re';
@@ -68,6 +83,38 @@ export function calculate(input: CalcInput): CalcResult {
   const co2AvoidedVsAvionPct = avion.co2Kg > 0 ? (co2AvoidedVsAvionKg / avion.co2Kg) * 100 : 0;
 
   return { travelers, train, avion, voiture, doorToDoorMin, co2AvoidedVsAvionKg, co2AvoidedVsAvionPct };
+}
+
+// Heuristics averaged from the 9 curated routes in routes.ts, used only
+// when a visitor searches an arbitrary point A to point B that isn't one of
+// them. Openly approximate on purpose — no invented itinerary and no
+// invented on-the-day price, just an order-of-magnitude estimate from
+// straight-line distance (see src/lib/db-journeys.ts's haversineKm).
+const ESTIMATE_HEURISTIC = {
+  trainDetourFactor: 1.15, // real track distance vs. straight line
+  carDetourFactor: 1.08,
+  trainEurPerKm: 0.065,
+  planeEurPerKm: 0.15,
+  carEurPerKmVehicle: 0.117,
+  trainKmh: 100, // long-distance average incl. stops — night trains and TGVs average out
+  carKmh: 95,
+};
+
+export function estimateRouteFromDistance(directKm: number): RouteEstimateInput {
+  const trainKm = directKm * ESTIMATE_HEURISTIC.trainDetourFactor;
+  const carKm = directKm * ESTIMATE_HEURISTIC.carDetourFactor;
+  return {
+    tag: 'standard',
+    trainKm,
+    trainDurationMin: (trainKm / ESTIMATE_HEURISTIC.trainKmh) * 60,
+    trainPriceBase2nd: Math.max(15, trainKm * ESTIMATE_HEURISTIC.trainEurPerKm),
+    planeKm: directKm,
+    planeFlightMin: (directKm / 700) * 60 + 35,
+    planePriceBase: Math.max(40, directKm * ESTIMATE_HEURISTIC.planeEurPerKm),
+    carKm,
+    carDurationMin: (carKm / ESTIMATE_HEURISTIC.carKmh) * 60,
+    carPriceBase: Math.max(10, carKm * ESTIMATE_HEURISTIC.carEurPerKmVehicle),
+  };
 }
 
 export function formatEur(n: number): string {

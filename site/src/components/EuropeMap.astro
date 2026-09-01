@@ -153,6 +153,24 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
     }
     let activeFilter = 'toutes';
 
+    // Lets an outside script (e.g. the calculator) drive which route this
+    // map highlights, once it exists — id === null clears the selection.
+    let mapReady = false;
+    root.addEventListener('evr-set-route', (e) => {
+      const id = e.detail?.id ?? null;
+      if (mapReady) selectRoute(id); else selected = id;
+    });
+
+    // Ad-hoc line for a custom point-A-to-B search (the calculator's "Autre
+    // trajet" mode) — arbitrary [lon,lat] pairs, not tied to a known route
+    // or even to a city in CITY_COORDS.
+    let customLine = null;
+    root.addEventListener('evr-set-custom-line', (e) => {
+      const pts = e.detail?.points;
+      customLine = Array.isArray(pts) && pts.length >= 2 ? pts : null;
+      if (mapReady) drawCustomLine();
+    });
+
     // MultiPoint corners, not a Polygon: d3's spherical winding rules would
     // read a lon/lat rectangle as the whole-globe complement.
     const bboxFeature = { type: 'Feature', geometry: { type: 'MultiPoint', coordinates: [
@@ -179,6 +197,21 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
       .attr('stroke', 'rgba(32,30,29,.14)').attr('stroke-width', 0.8);
 
     const lineGen = d3line().x((d) => projection(C[d])[0]).y((d) => projection(C[d])[1]).curve(curveCatmullRom.alpha(0.6));
+
+    // Custom point-A-to-B layer (raw [lon,lat] pairs, no city-key lookup).
+    const customLineGen = d3line().x((p) => projection(p)[0]).y((p) => projection(p)[1]).curve(curveCatmullRom.alpha(0.6));
+    const customG = g.append('g').attr('fill', 'none');
+    function drawCustomLine() {
+      customG.selectAll('*').remove();
+      if (!customLine) return;
+      customG.append('path')
+        .attr('d', customLineGen(customLine))
+        .attr('stroke', '#8c491a').attr('stroke-width', 3).attr('stroke-dasharray', '2,7')
+        .attr('stroke-linecap', 'round');
+      customG.selectAll('circle').data([customLine[0], customLine[customLine.length - 1]]).join('circle')
+        .attr('cx', (p) => projection(p)[0]).attr('cy', (p) => projection(p)[1]).attr('r', 5.5)
+        .attr('fill', '#f5ead8').attr('stroke', '#8c491a').attr('stroke-width', 2.2);
+    }
 
     // Reference layer: other European night trains, not ridden by us — thin
     // grey, drawn under our own routes, no itinerary/price/CO2 attached.
@@ -286,6 +319,8 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
 
     renderList();
     if (selected) selectRoute(selected);
+    mapReady = true;
+    if (customLine) drawCustomLine();
   }
 
   (window.__evrMapInit || []).forEach(initMap);

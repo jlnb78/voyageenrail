@@ -2,7 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
 import Timeline from '../components/Timeline.astro';
-import { ROUTES, getRoute } from '../data/routes';
+import EuropeMap from '../components/EuropeMap.astro';
+import { ROUTES, getRoute, HUBS } from '../data/routes';
+import { NIGHT_TRAIN_EXTRA_HUBS } from '../data/night-trains';
 import { calculate, formatEur, formatKg, formatDurationMin } from '../lib/calc';
 import { CO2_FACTORS, CAR_G_PER_KM_VEHICLE } from '../data/co2-factors';
 
@@ -11,24 +13,54 @@ const route = getRoute(DEFAULT_ROUTE_ID)!;
 const input = { route, adults: 2, children: 1, travelClass: '2de' as const, roundTrip: true };
 const result = calculate(input);
 const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.co2Kg) || 1;
+
+// Suggestions only — free text is always accepted, resolved live against
+// Deutsche Bahn's own station search (src/lib/db-journeys.ts).
+const cityHints = [...new Set([...HUBS, ...NIGHT_TRAIN_EXTRA_HUBS].map(([, label]) => label))].sort();
 ---
-<BaseLayout title="Calculateur coût / CO2 — voyage en rail" description="Comparez le coût, la durée et le CO2 d'un trajet en train, en avion et en voiture.">
+<BaseLayout title="Calculateur coût / CO2 — voyage en rail" description="Comparez le coût, la durée et le CO2 d'un trajet en train, en avion et en voiture — l'une de nos lignes ou un point A à un point B de votre choix.">
   <Nav current="calculateur" />
+
+  <datalist id="city-hints">
+    {cityHints.map((c) => <option value={c} />)}
+  </datalist>
 
   <div class="page-pad" style="display:grid;grid-template-columns:392px 1fr;gap:36px;padding-top:16px;padding-bottom:36px;align-items:start">
 
     <form class="card" id="calc-form" style="padding:28px 26px;gap:16px">
       <h2 style="font-size:24px;margin:0">Votre trajet</h2>
 
-      <div class="field">
+      <div class="seg" style="width:100%">
+        <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="mode" value="curated" checked>Nos lignes</label>
+        <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name="mode" value="custom">Autre trajet</label>
+      </div>
+
+      <div data-mode-panel="curated" class="field">
         <label for="calc-route">Ligne</label>
         <select class="input" id="calc-route" name="route">
           {ROUTES.map((r) => <option value={r.id} selected={r.id === DEFAULT_ROUTE_ID}>{r.name}</option>)}
         </select>
       </div>
+
+      <div data-mode-panel="custom" hidden style="display:flex;flex-direction:column;gap:16px">
+        <div class="field">
+          <label for="calc-from">Départ</label>
+          <input class="input" id="calc-from" type="text" list="city-hints" placeholder="Paris, Lyon, Berlin…" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="calc-via">Correspondance <span style="font-weight:400;color:rgba(32,30,29,.55)">(optionnel)</span></label>
+          <input class="input" id="calc-via" type="text" list="city-hints" placeholder="Laisser vide si direct" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="calc-to">Arrivée</label>
+          <input class="input" id="calc-to" type="text" list="city-hints" placeholder="Barcelone, Vienne, Rome…" autocomplete="off">
+        </div>
+        <p data-out="customStatus" style="font-size:12px;margin:0;color:rgba(32,30,29,.6)" hidden></p>
+      </div>
+
       <div style="display:flex;gap:12px">
-        <div class="field" style="flex:1"><label>Aller</label><input class="input" value="14 avril 2026" readonly></div>
-        <div class="field" style="flex:1"><label>Retour</label><input class="input" value="19 avril 2026" readonly></div>
+        <div class="field" style="flex:1"><label for="calc-depart">Aller</label><input class="input" id="calc-depart" type="date"></div>
+        <div class="field" style="flex:1"><label for="calc-retour">Retour <span style="font-weight:400;color:rgba(32,30,29,.55)">(optionnel)</span></label><input class="input" id="calc-retour" type="date"></div>
       </div>
       <div style="display:flex;gap:12px">
         <div class="field" style="flex:1">
@@ -55,17 +87,22 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
           <label class="radio"><input type="radio" name="cmp" value="both" checked><span class="dot"></span>Les deux</label>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-block" style="min-height:44px;margin-top:10px">Recalculer</button>
-      <p style="font-size:11.5px;line-height:1.5;margin:6px 0 0;color:rgba(32,30,29,.55)">Prix relevés le 2 mars 2026 sur les sites des opérateurs. Ils bougent ; c'est une estimation honnête, pas un devis.</p>
+      <button type="submit" class="btn btn-primary btn-block" id="calc-submit" style="min-height:44px;margin-top:10px">Recalculer</button>
+      <p style="font-size:11.5px;line-height:1.5;margin:6px 0 0;color:rgba(32,30,29,.55)" data-out="priceNote">Prix relevés le 2 mars 2026 sur les sites des opérateurs. Ils bougent ; c'est une estimation honnête, pas un devis.</p>
     </form>
 
     <div style="display:flex;flex-direction:column;gap:24px">
+
+      <div id="calc-route-map" style="height:240px;border-radius:36px;overflow:hidden;box-shadow:0 3px 10px rgba(46,43,37,.14)">
+        <EuropeMap mode="mini" initialRouteId={DEFAULT_ROUTE_ID} />
+      </div>
+      <p data-out="estimateNote" style="font-size:11.5px;margin:-14px 4px 0;color:rgba(32,30,29,.55)" hidden></p>
 
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
         <div style="background:#ebddc5;border-radius:36px;padding:24px 26px">
           <p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 10px;color:rgba(32,30,29,.6)">Coût total, <span data-out="travelers">{result.travelers}</span> voyageurs</p>
           <p style="font-size:42px;margin:0;line-height:1" data-out="cost">{formatEur(result.train.priceEur)}</p>
-          <p style="font-size:13.5px;margin:8px 0 0;color:rgba(32,30,29,.7)">Aller-retour, <span data-out="classLabel">2ᵈᵉ</span> classe, tarif réservé 3 semaines avant.</p>
+          <p style="font-size:13.5px;margin:8px 0 0;color:rgba(32,30,29,.7)"><span data-out="tripLabel">Aller-retour</span>, <span data-out="classLabel">2ᵈᵉ</span> classe, tarif réservé 3 semaines avant.</p>
         </div>
         <div style="background:#f0fae1;border-radius:36px;padding:24px 26px">
           <p style="font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 10px;color:rgba(32,30,29,.6)">CO₂ évité</p>
@@ -103,7 +140,7 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
           <h3 style="font-size:22px;margin:0">Prochains départs réels</h3>
           <span class="text-muted" style="font-size:11px">Recherche Deutsche Bahn — API communautaire, non officielle</span>
         </div>
-        <p style="font-size:12.5px;line-height:1.5;margin:0;color:rgba(32,30,29,.65)">Horaires en direct pour vérifier qu'un train existe vraiment à peu près à cette heure — ça ne remplace pas la réservation, et certaines lignes (correspondances hors réseau DB) ne remontent aucun résultat même si elles existent.</p>
+        <p style="font-size:12.5px;line-height:1.5;margin:0;color:rgba(32,30,29,.65)">Horaires en direct pour vérifier qu'un train existe vraiment à peu près à cette heure — ça ne remplace pas la réservation, et certains trajets (hors réseau indexé par Deutsche Bahn) ne remontent aucun résultat même s'ils existent.</p>
         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
           <div class="field" style="flex:1;min-width:200px;margin:0">
             <label for="db-when">À partir de</label>
@@ -114,7 +151,7 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
         <div data-out="dbResults" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
-      <div class="card" style="padding:28px 30px;gap:20px">
+      <div class="card" style="padding:28px 30px;gap:20px" data-out="itinCard">
         <div style="display:flex;align-items:baseline;justify-content:space-between">
           <h3 style="font-size:22px;margin:0">L'itinéraire, étape par étape</h3>
           <span class="tag tag-accent-2" data-out="stopCount">{route.itinerary.filter((s) => s.kind === 'stop').length} changement{route.itinerary.filter((s) => s.kind === 'stop').length > 1 ? 's' : ''} recommandé{route.itinerary.filter((s) => s.kind === 'stop').length > 1 ? 's' : ''}</span>
@@ -135,13 +172,19 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
 
 <script>
   import { ROUTES, getRoute } from '../data/routes';
-  import { calculate, formatEur, formatKg, formatDurationMin } from '../lib/calc';
-  import { findJourneys, type JourneySummary } from '../lib/db-journeys';
+  import { calculate, formatEur, formatKg, formatDurationMin, estimateRouteFromDistance, type RouteEstimateInput } from '../lib/calc';
+  import { findJourneys, findJourneysWithVia, findStation, haversineKm, type JourneySummary } from '../lib/db-journeys';
 
   const form = document.getElementById('calc-form') as HTMLFormElement;
   const routeSelect = document.getElementById('calc-route') as HTMLSelectElement;
   const adultsInput = document.getElementById('calc-adults') as HTMLInputElement;
   const childrenInput = document.getElementById('calc-children') as HTMLInputElement;
+  const departInput = document.getElementById('calc-depart') as HTMLInputElement;
+  const retourInput = document.getElementById('calc-retour') as HTMLInputElement;
+  const fromInput = document.getElementById('calc-from') as HTMLInputElement;
+  const viaInput = document.getElementById('calc-via') as HTMLInputElement;
+  const toInput = document.getElementById('calc-to') as HTMLInputElement;
+  const submitBtn = document.getElementById('calc-submit') as HTMLButtonElement;
 
   // Slugs that actually have a récit — kept in sync manually since content
   // collections aren't reachable from a browser-side script.
@@ -156,26 +199,54 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
 
   const out = (name: string) => document.querySelector(`[data-out="${name}"]`) as HTMLElement | null;
 
+  function currentMode(): 'curated' | 'custom' {
+    return (form.querySelector('input[name="mode"]:checked') as HTMLInputElement)?.value === 'custom' ? 'custom' : 'curated';
+  }
   function currentClass(): '2de' | '1re' {
     return (form.querySelector('input[name="cls"]:checked') as HTMLInputElement)?.value === '1re' ? '1re' : '2de';
   }
   function currentCmp(): 'avion' | 'voiture' | 'both' {
     return (form.querySelector('input[name="cmp"]:checked') as HTMLInputElement)?.value as 'avion' | 'voiture' | 'both' ?? 'avion';
   }
+  function isRoundTrip(): boolean {
+    return !!retourInput.value;
+  }
+  function fmtDateFr(value: string): string {
+    if (!value) return '';
+    return new Date(`${value}T12:00:00`).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
 
-  function render() {
-    const route = getRoute(routeSelect.value) ?? ROUTES[0];
-    const adults = Math.max(1, parseInt(adultsInput.value || '1', 10));
-    const children = Math.max(0, parseInt(childrenInput.value || '0', 10));
-    const travelClass = currentClass();
+  function toDateInputValue(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+  function toLocalDatetimeValue(d: Date): string {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  let lastMapRouteId: string | null = null;
+  function syncRouteMap(routeId: string | null) {
+    if (routeId === lastMapRouteId) return;
+    lastMapRouteId = routeId;
+    document.querySelector('#calc-route-map .evr-map')
+      ?.dispatchEvent(new CustomEvent('evr-set-route', { detail: { id: routeId } }));
+  }
+  function syncCustomMapLine(points: [number, number][] | null) {
+    document.querySelector('#calc-route-map .evr-map')
+      ?.dispatchEvent(new CustomEvent('evr-set-custom-line', { detail: { points } }));
+  }
+
+  // --- shared output rendering (both modes feed this) ---
+  function applyResult(result: ReturnType<typeof calculate>, carKm: number) {
     const cmp = currentCmp();
-    const result = calculate({ route, adults, children, travelClass, roundTrip: true });
     const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.co2Kg) || 1;
 
     out('travelers')!.textContent = String(result.travelers);
     out('travelers2')!.textContent = String(result.travelers);
     out('cost')!.textContent = formatEur(result.train.priceEur);
-    out('classLabel')!.textContent = travelClass === '1re' ? '1ʳᵉ' : '2ᵈᵉ';
+    out('tripLabel')!.textContent = isRoundTrip() ? 'Aller-retour' : 'Aller simple';
+    out('classLabel')!.textContent = currentClass() === '1re' ? '1ʳᵉ' : '2ᵈᵉ';
     (out('co2avoided') as HTMLElement).textContent = String(Math.round(result.co2AvoidedVsAvionKg));
     out('doorToDoor')!.textContent = formatDurationMin(result.doorToDoorMin);
     out('planeDoorToDoor')!.textContent = formatDurationMin(result.avion.durationOneWayMin + 210);
@@ -189,35 +260,12 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
     (out('avionBar') as HTMLElement).style.width = `${Math.round((result.avion.co2Kg / maxBar) * 100)}%`;
 
     out('voitureDuration')!.textContent = formatDurationMin(result.voiture.durationOneWayMin);
-    out('voitureKm')!.textContent = String(route.carKm);
+    out('voitureKm')!.textContent = String(Math.round(carKm));
     out('voitureStats')!.textContent = `${formatKg(result.voiture.co2Kg)} · ${formatEur(result.voiture.priceEur)} (péages et carburant)`;
     (out('voitureBar') as HTMLElement).style.width = `${Math.round((result.voiture.co2Kg / maxBar) * 100)}%`;
 
     document.querySelector('[data-bar="avion"]')!.toggleAttribute('hidden', !(cmp === 'avion' || cmp === 'both'));
     document.querySelector('[data-bar="voiture"]')!.toggleAttribute('hidden', !(cmp === 'voiture' || cmp === 'both'));
-
-    // Itinerary + stop count are route-specific: rebuild them for the newly
-    // selected line instead of only the current one baked in at build time.
-    const stops = route.itinerary.filter((s) => s.kind === 'stop').length;
-    const stopCountEl = out('stopCount')!;
-    stopCountEl.textContent = `${stops} changement${stops > 1 ? 's' : ''} recommandé${stops > 1 ? 's' : ''}`;
-    renderItinerary(route.itinerary);
-
-    const recitLink = out('recitLink') as HTMLAnchorElement;
-    const slug = RECIT_BY_ROUTE[route.id];
-    if (slug) {
-      recitLink.href = `/recits/${slug}`;
-      recitLink.hidden = false;
-    } else {
-      recitLink.hidden = true;
-    }
-
-    // Real-schedule lookup only makes sense for a route with a single
-    // realistic through-journey — see routes.ts for why the multi-day ones
-    // don't have dbStations at all.
-    const dbCard = out('dbcard')!;
-    dbCard.hidden = !route.dbStations;
-    out('dbResults')!.innerHTML = '';
   }
 
   function renderItinerary(steps: import('../data/routes').ItineraryStep[]) {
@@ -249,18 +297,116 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
     wrap.appendChild(list);
   }
 
-  form.addEventListener('submit', (e) => { e.preventDefault(); render(); });
-  routeSelect.addEventListener('change', () => render());
-  form.querySelectorAll('input[name="cls"], input[name="cmp"]').forEach((el) => el.addEventListener('change', render));
+  // --- mode switching ---
+  function applyModeVisibility() {
+    const mode = currentMode();
+    document.querySelectorAll<HTMLElement>('[data-mode-panel]').forEach((el) => {
+      el.hidden = el.dataset.modePanel !== mode;
+    });
+    out('itinCard')!.hidden = mode === 'custom';
+    out('estimateNote')!.hidden = mode !== 'custom';
+    if (mode === 'custom') {
+      out('estimateNote')!.textContent = "Trajet personnalisé : distance à vol d'oiseau, estimation approximative — pas d'itinéraire documenté par nous pour cette combinaison.";
+    }
+  }
+  form.querySelectorAll('input[name="mode"]').forEach((el) => el.addEventListener('change', () => {
+    applyModeVisibility();
+    out('dbcard')!.hidden = true;
+    out('dbResults')!.innerHTML = '';
+    if (currentMode() === 'curated') {
+      render();
+    } else {
+      syncCustomMapLine(null);
+    }
+  }));
+
+  // --- curated mode (one of our 9 lines) ---
+  function render() {
+    const route = getRoute(routeSelect.value) ?? ROUTES[0];
+    syncRouteMap(route.id);
+    syncCustomMapLine(null);
+    const adults = Math.max(1, parseInt(adultsInput.value || '1', 10));
+    const children = Math.max(0, parseInt(childrenInput.value || '0', 10));
+    const result = calculate({ route, adults, children, travelClass: currentClass(), roundTrip: isRoundTrip() });
+    applyResult(result, route.carKm);
+
+    const stops = route.itinerary.filter((s) => s.kind === 'stop').length;
+    out('stopCount')!.textContent = `${stops} changement${stops > 1 ? 's' : ''} recommandé${stops > 1 ? 's' : ''}`;
+    renderItinerary(route.itinerary);
+
+    const recitLink = out('recitLink') as HTMLAnchorElement;
+    const slug = RECIT_BY_ROUTE[route.id];
+    recitLink.hidden = !slug;
+    if (slug) recitLink.href = `/recits/${slug}`;
+
+    // Real-schedule lookup only makes sense for a route with a single
+    // realistic through-journey — see routes.ts for why the multi-day ones
+    // don't have dbStations at all.
+    out('dbcard')!.hidden = !route.dbStations;
+    out('dbResults')!.innerHTML = '';
+  }
+
+  // --- custom mode (arbitrary point A to point B, optional stopover) ---
+  async function renderCustom() {
+    const fromName = fromInput.value.trim();
+    const toName = toInput.value.trim();
+    const viaName = viaInput.value.trim();
+    const statusEl = out('customStatus')!;
+    statusEl.hidden = false;
+
+    if (!fromName || !toName) {
+      statusEl.textContent = 'Renseignez au moins un départ et une arrivée.';
+      return;
+    }
+    statusEl.textContent = 'Recherche des gares…';
+    submitBtn.disabled = true;
+    try {
+      const [from, via, to] = await Promise.all([
+        findStation(fromName),
+        viaName ? findStation(viaName) : Promise.resolve(null),
+        findStation(toName),
+      ]);
+      if (!from || !to || (viaName && !via)) {
+        statusEl.textContent = `Impossible de trouver ${!from ? `« ${fromName} »` : (viaName && !via) ? `« ${viaName} »` : `« ${toName} »`} — vérifiez l'orthographe ou essayez une gare voisine.`;
+        return;
+      }
+      const directKm = via ? haversineKm(from, via) + haversineKm(via, to) : haversineKm(from, to);
+      statusEl.textContent = `${Math.round(directKm)} km à vol d'oiseau, ${from.name} → ${via ? `${via.name} → ` : ''}${to.name}.`;
+
+      const estimateInput: RouteEstimateInput = estimateRouteFromDistance(directKm);
+      const adults = Math.max(1, parseInt(adultsInput.value || '1', 10));
+      const children = Math.max(0, parseInt(childrenInput.value || '0', 10));
+      const result = calculate({ route: estimateInput, adults, children, travelClass: currentClass(), roundTrip: isRoundTrip() });
+      applyResult(result, estimateInput.carKm);
+
+      out('recitLink')!.hidden = true;
+      syncRouteMap(null);
+      const points: [number, number][] = [[from.lon, from.lat], ...(via ? [[via.lon, via.lat] as [number, number]] : []), [to.lon, to.lat]];
+      syncCustomMapLine(points);
+
+      // Custom searches always attempt a real schedule — it's the whole point.
+      const dbCard = out('dbcard')!;
+      dbCard.hidden = false;
+      await runDbSearch(fromName, toName, viaName || null);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (currentMode() === 'curated') render(); else renderCustom();
+  });
+  routeSelect.addEventListener('change', () => { if (currentMode() === 'curated') render(); });
+  form.querySelectorAll('input[name="cls"], input[name="cmp"]').forEach((el) => el.addEventListener('change', () => {
+    if (currentMode() === 'curated') render();
+  }));
+  retourInput.addEventListener('change', () => { if (currentMode() === 'curated') render(); });
 
   // --- Live schedule lookup (Deutsche Bahn, best-effort) ---
   const dbWhenInput = document.getElementById('db-when') as HTMLInputElement | null;
   const dbSearchBtn = document.getElementById('db-search') as HTMLButtonElement | null;
 
-  function toLocalDatetimeValue(d: Date): string {
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }
   function formatClock(iso: string | null): string {
     if (!iso) return '?';
     return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -270,12 +416,12 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
     const wrap = out('dbResults')!;
     wrap.innerHTML = '';
     if (journeys === null) {
-      wrap.innerHTML = `<p style="font-size:13px;margin:0;color:rgba(32,30,29,.6)">Aucun résultat direct trouvé pour cette ligne à cette heure — service indisponible, ou ce trajet ne passe pas par le réseau que Deutsche Bahn indexe. Voir l'itinéraire documenté ci-dessous.</p>`;
+      wrap.innerHTML = `<p style="font-size:13px;margin:0;color:rgba(32,30,29,.6)">Aucun résultat direct trouvé à cette heure — service indisponible, gares non reconnues, ou ce trajet ne passe pas par le réseau que Deutsche Bahn indexe.</p>`;
       return;
     }
     journeys.forEach((j) => {
       const row = document.createElement('div');
-      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;background:var(--color-bg);border-radius:16px;font-size:13.5px';
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;background:var(--color-bg);border-radius:16px;font-size:13.5px;flex-wrap:wrap';
       const lines = [...new Set(j.legs.map((l) => l.lineName).filter(Boolean))].join(', ');
       row.innerHTML = `
         <span><strong>${formatClock(j.departure)}</strong> → <strong>${formatClock(j.arrival)}</strong></span>
@@ -285,23 +431,51 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
     });
   }
 
-  async function searchDb() {
-    const route = getRoute(routeSelect.value) ?? ROUTES[0];
-    if (!route.dbStations || !dbWhenInput) return;
+  async function runDbSearch(fromName: string, toName: string, viaName: string | null) {
+    if (!dbWhenInput) return;
     const wrap = out('dbResults')!;
     wrap.innerHTML = `<p style="font-size:13px;margin:0;color:rgba(32,30,29,.6)">Recherche en cours…</p>`;
     if (dbSearchBtn) dbSearchBtn.disabled = true;
     try {
       const whenISO = dbWhenInput.value ? new Date(dbWhenInput.value).toISOString() : new Date().toISOString();
-      const journeys = await findJourneys(route.dbStations.from, route.dbStations.to, whenISO);
+      const journeys = viaName
+        ? await findJourneysWithVia(fromName, viaName, toName, whenISO)
+        : await findJourneys(fromName, toName, whenISO);
       renderDbJourneys(journeys);
     } finally {
       if (dbSearchBtn) dbSearchBtn.disabled = false;
     }
   }
 
-  if (dbWhenInput) dbWhenInput.value = toLocalDatetimeValue(new Date());
-  dbSearchBtn?.addEventListener('click', searchDb);
+  dbSearchBtn?.addEventListener('click', () => {
+    if (currentMode() === 'curated') {
+      const route = getRoute(routeSelect.value) ?? ROUTES[0];
+      if (route.dbStations) runDbSearch(route.dbStations.from, route.dbStations.to, null);
+    } else {
+      const fromName = fromInput.value.trim();
+      const toName = toInput.value.trim();
+      if (fromName && toName) runDbSearch(fromName, toName, viaInput.value.trim() || null);
+    }
+  });
+
+  // --- initial state ---
+  const today = new Date();
+  const defaultDepart = new Date(today.getTime() + 14 * 86_400_000);
+  const defaultRetour = new Date(defaultDepart.getTime() + 5 * 86_400_000);
+  departInput.value = toDateInputValue(defaultDepart);
+  retourInput.value = toDateInputValue(defaultRetour);
+  const defaultDepartAt8am = new Date(defaultDepart);
+  defaultDepartAt8am.setHours(8, 0, 0, 0);
+  if (dbWhenInput) dbWhenInput.value = toLocalDatetimeValue(defaultDepartAt8am);
+  departInput.addEventListener('change', () => {
+    if (dbWhenInput && departInput.value) {
+      const d = new Date(`${departInput.value}T08:00`);
+      dbWhenInput.value = toLocalDatetimeValue(d);
+    }
+    if (currentMode() === 'curated') render();
+  });
+
+  applyModeVisibility();
 
   // Land here from a récit or the map with ?route=nightjet and it's honoured
   // immediately, no reload needed.
