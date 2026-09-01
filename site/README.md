@@ -37,13 +37,39 @@ npm run preview   # serve the production build locally
 - `src/lib/calc.ts` — the cost/CO2/duration formulas behind `/calculateur`,
   shared between the server-rendered initial state and the client-side
   recompute script.
+- `src/lib/instagram.ts` — pulls the real @voyageenrail feed via the
+  Instagram Graph API at build time. Needs a one-time, human-only setup
+  step (an access token only the account owner can generate — see below);
+  until that's done it falls back to a placeholder grid automatically.
+
+## Wiring the real @voyageenrail feed
+
+The homepage's Instagram section is already coded to show the real feed —
+it just needs a token, which only whoever owns @voyageenrail can create
+(this can't be done on their behalf without their Instagram login):
+
+1. Make sure @voyageenrail is a Professional account (Business or Creator) —
+   Instagram app → Settings → Account type.
+2. Create an app at [developers.facebook.com/apps](https://developers.facebook.com/apps),
+   add the **Instagram** product, and use the "API setup with Instagram
+   login" flow (no linked Facebook Page required with this flow).
+3. Generate a long-lived access token for @voyageenrail. It's valid 60 days
+   and can be refreshed indefinitely by calling the refresh endpoint before
+   it expires — see the [Instagram Platform docs](https://developers.facebook.com/docs/instagram-platform).
+4. Set it as `INSTAGRAM_ACCESS_TOKEN` in Netlify's site environment
+   variables (or `.env.local` for local dev — see `.env.example`). It's
+   server-only and never shipped to the browser.
+5. Redeploy (or set up a scheduled rebuild) so the feed refreshes
+   periodically — this is a static site, so it updates on each build, not
+   live in the visitor's browser.
+
+Until that token exists, the grid renders as a labeled placeholder instead
+of failing the build.
 
 ## Known gaps / next steps
 
 - **Newsletter form** posts nowhere yet — wire it to a provider (Buttondown,
   Mailchimp…) before launch.
-- **Instagram grid** is a static placeholder — either the real Graph API or
-  an embed widget, as discussed in the design chat.
 - Only 2 real photos exist yet (`public/images/`); the rest of the
   image slots render as labeled placeholders, same as the mockup.
 - The map fetches world geometry from a public CDN
