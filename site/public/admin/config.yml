@@ -1,0 +1,66 @@
+# Decap CMS — no-code admin for voyage en rail.
+# Needs Netlify Identity + Git Gateway enabled once (see site/README.md).
+# Every save here is a real git commit to `main`, which redeploys the site
+# automatically — same pipeline as everything Claude pushes.
+
+backend:
+  name: git-gateway
+  branch: main
+
+# Astro serves site/public/* at the site root, so this ends up under
+# /images/uploads/... same folder the rest of the site's images use.
+media_folder: "public/images/uploads"
+public_folder: "/images/uploads"
+
+collections:
+  - name: "recits"
+    label: "Récits"
+    label_singular: "un récit"
+    folder: "src/content/recits"
+    create: true
+    delete: true
+    slug: "{{slug}}"
+    extension: "md"
+    format: "frontmatter"
+    summary: "{{title}} — {{country}}, {{dateTravelled}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string" }
+      - { label: "Extrait (le chapô sous le titre)", name: "excerpt", widget: "text" }
+      - { label: "Date du voyage", name: "dateTravelled", widget: "date", format: "YYYY-MM-DD" }
+      - { label: "Date de mise à jour", name: "dateUpdated", widget: "date", format: "YYYY-MM-DD", required: false }
+      - label: "Type"
+        name: "kickerType"
+        widget: "select"
+        options: ["Nuit", "Ligne lente", "Grande traversée", "Régional", "Famille"]
+      - { label: "Pays", name: "country", widget: "string" }
+      - label: "Filtre (page Récits)"
+        name: "filterTag"
+        widget: "select"
+        options:
+          - { label: "Trains de nuit", value: "nuit" }
+          - { label: "Grandes traversées", value: "traversee" }
+          - { label: "Lignes lentes", value: "lente" }
+          - { label: "Standard (aucun filtre spécial)", value: "standard" }
+      - { label: "Minutes de lecture", name: "readMinutes", widget: "number", value_type: "int" }
+      - { label: "Prix payé (€)", name: "priceEur", widget: "number", value_type: "int" }
+      - { label: "CO2 évité (kg, vs avion)", name: "co2AvoidedKg", widget: "number", value_type: "int" }
+      - label: "Ligne associée"
+        name: "routeId"
+        widget: "select"
+        hint: "La ligne dont ce récit montre l'itinéraire — voir site/src/data/routes.ts pour la liste des id."
+        options:
+          - { label: "Nightjet Paris → Vienne", value: "nightjet" }
+          - { label: "Paris → Lisbonne", value: "iberie" }
+          - { label: "Paris → Barcelone", value: "barcelone" }
+          - { label: "Riviera (Marseille → Gênes)", value: "riviera" }
+          - { label: "Zurich → Rome", value: "italie" }
+          - { label: "Amsterdam → Stockholm", value: "nord" }
+          - { label: "Paris → Berlin", value: "berlin" }
+          - { label: "Vienne → Zagreb", value: "danube" }
+          - { label: "Londres → Paris (Eurostar)", value: "eurostar" }
+      - { label: "Photo de couverture", name: "coverImage", widget: "image", required: false }
+      - { label: "Texte alternatif de la photo", name: "coverAlt", widget: "string" }
+      - { label: "Légende Instagram associée", name: "instagramCaption", widget: "string", required: false }
+      - { label: "Date Instagram associée", name: "instagramDate", widget: "string", required: false, hint: "ex. \"Publié le 7 mars\"" }
+      - { label: "Mettre en avant (page d'accueil)", name: "featured", widget: "boolean", default: true }
+      - { label: "Texte de l'article", name: "body", widget: "markdown" }

@@ -41,6 +41,40 @@ npm run preview   # serve the production build locally
   Instagram Graph API at build time. Needs a one-time, human-only setup
   step (an access token only the account owner can generate — see below);
   until that's done it falls back to a placeholder grid automatically.
+- `public/admin/` — the Decap CMS admin panel, at `/admin` on the deployed
+  site. No-code editing for récits (title, prices, CO2, photo, body text)
+  — the back-office the design chat promised. See setup below.
+
+## Setting up the no-code admin panel (Decap CMS)
+
+`/admin` on the deployed site is already built and configured
+(`public/admin/config.yml`) to edit every récit through plain forms —
+no Markdown, no code, no git commands. It needs one one-time setup step in
+Netlify, done by whoever administers the Netlify site:
+
+1. Netlify dashboard → your site → **Identity** → **Enable Identity**.
+2. Identity → **Registration** → set to **Invite only** (so the admin
+   panel isn't open to anyone who finds the URL).
+3. Identity → **Services** → **Git Gateway** → **Enable Git Gateway**. This
+   is what lets an Identity-logged-in editor save changes to GitHub without
+   needing their own GitHub account or a personal access token.
+4. Identity → **Invite users** → invite yourself (and anyone else who'll
+   write récits). You'll get an email to set a password.
+5. Go to `https://<your-site>.netlify.app/admin`, log in, and edit.
+
+Every save there is a real commit to `main` and triggers a normal Netlify
+deploy — the site updates a minute or two later, same as any other push.
+
+If Netlify has since renamed or moved "Identity"/"Git Gateway" in their
+dashboard, search their current docs for "Git Gateway" or "Decap CMS" — the
+`git-gateway` backend in `config.yml` is what needs the equivalent feature,
+whatever it's called by the time you set this up.
+
+Adding the map's routes (`src/data/routes.ts`) and the CO2 factors
+(`src/data/co2-factors.ts`) to the CMS too is possible, but they're
+currently plain TypeScript, not CMS-editable files — ask Claude to move
+them to a `routes.yml`/`co2-factors.yml` the CMS can read if you want those
+editable without code as well.
 
 ## Wiring the real @voyageenrail feed
 
