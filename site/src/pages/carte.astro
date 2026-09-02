@@ -5,7 +5,7 @@ import EuropeMap from '../components/EuropeMap.astro';
 
 const initialRoute = Astro.url.searchParams.get('route') ?? 'nightjet';
 ---
-<BaseLayout title="Carte des lignes — voyage en rail" description="Le réseau ferroviaire que nous avons parcouru : neuf lignes documentées, cliquables, avec leurs étapes.">
+<BaseLayout title="Carte des lignes — voyage en rail" description="Le réseau ferroviaire que nous avons parcouru : des lignes documentées, cliquables, avec leurs étapes.">
   <div style="height:100vh;display:flex;flex-direction:column">
     <Nav current="carte" />
     <div class="page-pad" style="flex:none;padding-bottom:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">

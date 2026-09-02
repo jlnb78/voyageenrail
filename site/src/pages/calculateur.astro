@@ -190,7 +190,9 @@ const cityHints = [...new Set([...HUBS, ...REFERENCE_EXTRA_HUBS].map(([, label])
   // either direction) gets the rich, hand-documented experience — anything
   // else still works, just with a live-resolved estimate instead.
   function findCuratedRoute(fromText: string, toText: string): Route | null {
-    const norm = (s: string) => s.trim().toLowerCase();
+    // Accent-insensitive too — "Bale" should still match "Bâle".
+    const stripDiacritics = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const norm = (s: string) => stripDiacritics(s.trim().toLowerCase());
     const f = norm(fromText), t = norm(toText);
     if (!f || !t) return null;
     return ROUTES.find((r) => (norm(r.from) === f && norm(r.to) === t) || (norm(r.from) === t && norm(r.to) === f)) ?? null;

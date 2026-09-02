@@ -40,15 +40,14 @@ export const REFERENCE_EXTRA_COORDS: Record<string, [number, number]> = {
   inverness: [-4.22, 57.48],
   oslo: [10.75, 59.91],
   gothenburg: [11.97, 57.71],
-  como: [9.09, 45.81],
   liege: [5.57, 50.63],
   seville: [-5.98, 37.39],
   naples: [14.27, 40.85],
   turin: [7.68, 45.07],
   geneva: [6.14, 46.20],
-  basel: [7.59, 47.56],
   lille: [3.06, 50.63],
-  stuttgart: [9.18, 48.78],
+  // como, basel, stuttgart moved to routes.ts's CITY_COORDS — also used by
+  // curated (personally-ridden) routes now, single source of truth there.
 };
 
 // A few extra hub labels worth showing on the map once these lines are

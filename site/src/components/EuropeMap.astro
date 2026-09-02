@@ -48,7 +48,7 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
   {mode === 'full' && (
     <aside class="evr-map-panel">
       <h2 class="evr-map-h">Le réseau, ligne par ligne</h2>
-      <p class="evr-map-sub">Neuf itinéraires parcourus et documentés. Sélectionnez une ligne pour voir ses étapes.</p>
+      <p class="evr-map-sub">{ROUTES.length} itinéraires parcourus et documentés. Sélectionnez une ligne pour voir ses étapes.</p>
       {filterable && (
         <div class="seg" style="width:100%;margin-bottom:16px">
           <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="toutes" checked>Toutes</label>

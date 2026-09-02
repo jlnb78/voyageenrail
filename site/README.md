@@ -16,11 +16,18 @@ npm run preview   # serve the production build locally
 
 ## How it's organized
 
-- `src/data/routes.ts` — the 9 lines voyage en rail has ridden: distances,
+- `src/data/routes.ts` — the 14 lines voyage en rail has ridden: distances,
   prices, durations, and a step-by-step itinerary for each. This is the
   `routes.json` the design chat promised: "ajouter une ligne = ajouter un
   bloc de six lignes." One file, read by the map, the calculator, and every
-  récit's itinerary sidebar.
+  récit's itinerary sidebar. Five of the 14 (`bordeaux-copenhague`,
+  `hambourg-paris`, `paris-zurich`, `paris-bale`, `paris-lucerne`) were
+  added from the traveler's own list of city pairs but **without** real
+  price/date/on-board detail yet — their numbers are the same
+  distance-based heuristic used for a non-curated calculator search (see
+  below), clearly marked "à confirmer" in the itinerary rather than
+  presented as fact. Replace with the real price paid, travel date, and
+  a récit once supplied — never invent those from here.
 - `src/data/co2-factors.ts` — the ADEME factors shown on `/a-propos`, read
   by the calculator. Revisit yearly.
 - `src/content/recits/*.md` — one Markdown file per récit (title, dates,

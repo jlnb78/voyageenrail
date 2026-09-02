@@ -56,7 +56,8 @@ export const CITY_COORDS: Record<string, [number, number]> = {
   ventimiglia: [7.60, 43.79], nice: [7.27, 43.70], marseille: [5.37, 43.30], montpellier: [3.88, 43.61],
   lyon: [4.84, 45.76], barcelona: [2.17, 41.39], bordeaux: [-0.58, 44.84], irun: [-1.79, 43.34],
   madrid: [-3.70, 40.42], lisbon: [-9.14, 38.72], hamburg: [9.99, 53.55], copenhagen: [12.57, 55.68],
-  stockholm: [18.06, 59.33],
+  stockholm: [18.06, 59.33], karlsruhe: [8.40, 49.01], stuttgart: [9.18, 48.78], basel: [7.59, 47.56],
+  modena: [10.93, 44.65], como: [9.09, 45.81], lugano: [8.95, 46.00], lucerne: [8.31, 47.05],
 };
 
 export const HUBS: [string, string][] = [
@@ -194,6 +195,86 @@ export const ROUTES: Route[] = [
       { time: '11:47', place: 'Paris Gare du Nord', title: 'Arrivée', desc: 'Deux heures seize, huit départs par jour.', kind: 'arrive' },
     ],
     dbStations: { from: 'London St Pancras', to: 'Paris Gare du Nord' },
+  },
+
+  // — Added at the traveler's request, five more personally-ridden trips.
+  // Distances/durations/prices below are structural placeholders (same
+  // haversine + €/km methodology as the rest of this file) — NOT yet the
+  // real price paid, travel date, or on-board detail, because that's the
+  // traveler's to supply, not to invent. Replace once given; the numbers
+  // here are deliberately unremarkable rather than falsely specific.
+  {
+    id: 'bordeaux-copenhague', name: 'Bordeaux → Copenhague', from: 'Bordeaux', to: 'Copenhague',
+    viaCities: ['Strasbourg', 'Karlsruhe', 'Hambourg'], accent: 2, tag: 'standard',
+    mapPts: ['bordeaux', 'strasbourg', 'karlsruhe', 'hamburg', 'copenhagen'],
+    trainKm: 1877, trainDurationMin: 990, trainPriceBase2nd: 149,
+    planeKm: 1520, planeFlightMin: 165, planePriceBase: 178,
+    carKm: 1763, carDurationMin: 1114, carPriceBase: 205,
+    itinerary: [
+      { time: '07:10', place: 'Bordeaux Saint-Jean', title: 'TGV inOui vers Strasbourg', desc: 'Correspondance à Strasbourg pour la suite du trajet — durée à confirmer.', kind: 'depart' },
+      { time: '14:50', place: 'Strasbourg', title: 'Correspondance vers Karlsruhe', desc: 'Courte liaison transfrontalière.', kind: 'stop' },
+      { time: '15:31', place: 'Karlsruhe Hbf', title: 'Correspondance ICE vers Hambourg', desc: 'Changement de réseau, SNCF vers DB.', kind: 'stop' },
+      { time: '20:45', place: 'Hamburg Hbf', title: 'Correspondance vers Copenhague', desc: 'Liaison fixe via le pont-tunnel du Fehmarnbelt ou via Puttgarden selon la période.', kind: 'stop' },
+      { time: '23:40', place: 'København H', title: 'Arrivée', desc: 'Horaires et prix à confirmer avec le voyageur.', kind: 'arrive' },
+    ],
+    dbStations: { from: 'Bordeaux Saint-Jean', to: 'Kobenhavn H' },
+  },
+  {
+    id: 'hambourg-paris', name: 'Hambourg → Paris', from: 'Hambourg', to: 'Paris',
+    viaCities: ['Stuttgart'], accent: 1, tag: 'standard',
+    mapPts: ['hamburg', 'stuttgart', 'paris'],
+    trainKm: 1188, trainDurationMin: 590, trainPriceBase2nd: 99,
+    planeKm: 744, planeFlightMin: 99, planePriceBase: 118,
+    carKm: 1116, carDurationMin: 705, carPriceBase: 128,
+    itinerary: [
+      { time: '08:00', place: 'Hamburg Hbf', title: 'ICE vers Stuttgart', desc: 'Traversée de l’Allemagne du nord au sud.', kind: 'depart' },
+      { time: '13:05', place: 'Stuttgart Hbf', title: 'Correspondance ICE/TGV vers Paris', desc: 'Marge de correspondance à vérifier.', kind: 'stop' },
+      { time: '17:50', place: 'Paris Est', title: 'Arrivée', desc: 'Horaires et prix à confirmer avec le voyageur.', kind: 'arrive' },
+    ],
+    dbStations: { from: 'Hamburg Hbf', to: 'Paris Est' },
+  },
+  {
+    id: 'paris-zurich', name: 'Paris → Zurich', from: 'Paris', to: 'Zurich',
+    viaCities: ['Bâle'], accent: 1, tag: 'standard',
+    mapPts: ['paris', 'zurich'],
+    trainKm: 561, trainDurationMin: 243, trainPriceBase2nd: 69,
+    planeKm: 488, planeFlightMin: 77, planePriceBase: 98,
+    carKm: 527, carDurationMin: 333, carPriceBase: 74,
+    itinerary: [
+      { time: '07:11', place: 'Paris Gare de Lyon', title: 'TGV Lyria direct vers Zurich', desc: 'Ligne directe, via Bâle.', kind: 'depart' },
+      { time: '11:14', place: 'Zürich HB', title: 'Arrivée', desc: 'Prix à confirmer avec le voyageur — dès 69 € en tarif avancé.', kind: 'arrive' },
+    ],
+    dbStations: { from: 'Paris Gare de Lyon', to: 'Zürich HB' },
+  },
+  {
+    id: 'paris-bale', name: 'Paris → Bâle', from: 'Paris', to: 'Bâle',
+    viaCities: [], accent: 2, tag: 'standard',
+    mapPts: ['paris', 'basel'],
+    trainKm: 476, trainDurationMin: 185, trainPriceBase2nd: 49,
+    planeKm: 414, planeFlightMin: 71, planePriceBase: 92,
+    carKm: 447, carDurationMin: 282, carPriceBase: 64,
+    itinerary: [
+      { time: '07:16', place: 'Paris Gare de Lyon', title: 'TGV Lyria direct vers Bâle', desc: 'Ligne directe.', kind: 'depart' },
+      { time: '10:21', place: 'Basel SBB', title: 'Arrivée', desc: 'Prix à confirmer avec le voyageur — dès 49 € en tarif avancé.', kind: 'arrive' },
+    ],
+    dbStations: { from: 'Paris Gare de Lyon', to: 'Basel SBB' },
+  },
+  {
+    id: 'paris-lucerne', name: 'Paris → Lucerne', from: 'Paris', to: 'Lucerne',
+    viaCities: ['Milan', 'Modène', 'Côme', 'Lugano'], accent: 1, tag: 'standard',
+    mapPts: ['paris', 'milan', 'modena', 'como', 'lugano', 'lucerne'],
+    trainKm: 1320, trainDurationMin: 1070, trainPriceBase2nd: 165, multiDay: { nights: 1 },
+    planeKm: 487, planeFlightMin: 77, planePriceBase: 92,
+    carKm: 1239, carDurationMin: 782, carPriceBase: 165,
+    itinerary: [
+      { time: 'Jour 1 · 06:55', place: 'Paris Gare de Lyon', title: 'Train direct vers Milan', desc: 'Traversée des Alpes par le sud.', kind: 'depart' },
+      { time: 'Jour 1 · 13:55', place: 'Milano Centrale', title: 'Correspondance vers Modène', desc: 'Liaison Frecciarossa/regionale.', kind: 'stop' },
+      { time: 'Jour 1 · 15:00', place: 'Modena', title: 'Retour vers Côme via Milan', desc: 'Correspondance à préciser.', kind: 'stop' },
+      { time: 'Jour 1 · 18:00', place: 'Como', title: 'Correspondance transfrontalière vers Lugano', desc: 'Nuit à Lugano.', kind: 'stop' },
+      { time: 'Jour 2 · 10:12', place: 'Lugano', title: 'Gotthard Panorama Express — train puis bateau', desc: 'Train à travers le massif du Gothard jusqu’à Flüelen, puis bateau sur le lac des Quatre-Cantons jusqu’à Lucerne.', kind: 'stop' },
+      { time: 'Jour 2 · 17:30', place: 'Lucerne', title: 'Arrivée', desc: 'Horaires et prix à confirmer avec le voyageur.', kind: 'arrive' },
+    ],
+    dbStations: { from: 'Paris Gare de Lyon', to: 'Luzern' },
   },
 ];
 

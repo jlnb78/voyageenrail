@@ -7,6 +7,7 @@ import Newsletter from '../components/Newsletter.astro';
 import RecitCard from '../components/RecitCard.astro';
 import EuropeMap from '../components/EuropeMap.astro';
 import { getInstagramPosts } from '../lib/instagram';
+import { ROUTES } from '../data/routes';
 
 const allRecits = (await getCollection('recits')).sort(
   (a, b) => b.data.dateTravelled.valueOf() - a.data.dateTravelled.valueOf()
@@ -22,7 +23,7 @@ const igPosts = await getInstagramPosts(6);
     <div style="position:absolute;right:-120px;top:-170px;width:380px;height:380px;border-radius:50%;background:#e1eecc;z-index:-1"></div>
     <div style="position:relative;display:grid;grid-template-columns:1fr 620px;gap:48px;align-items:center">
       <div>
-        <span style="display:block;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#8c491a;margin-bottom:16px">9 lignes parcourues · {allRecits.length} récits</span>
+        <span style="display:block;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:#8c491a;margin-bottom:16px">{ROUTES.length} lignes parcourues · {allRecits.length} récits</span>
         <h1 style="font-size:60px;line-height:1.07;margin:0 0 20px;letter-spacing:-.02em"><span style="display:block">L'Europe tient</span><span style="display:block">sur un réseau</span><span style="display:block;color:#8c491a">de rails.</span></h1>
         <p style="font-size:17px;line-height:1.62;max-width:42ch;margin:0 0 24px;color:rgba(32,30,29,.8)">Choisissez une ligne sur la carte : vous verrez les étapes, la durée réelle, le prix constaté et le CO₂ évité par rapport à l'avion. Tous les trajets ont été faits par nous.</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
