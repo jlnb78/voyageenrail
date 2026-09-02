@@ -43,10 +43,21 @@ npm run preview   # serve the production build locally
 - `src/components/EuropeMap.astro` — the interactive map, ported from the
   mockup's `europe-map.html` (D3 + real Natural Earth geometry via
   `world-atlas`) into a component driven by `routes.ts`, used inline on the
-  homepage (mini), `/carte` (full, with the route list + filters), and
-  `/calculateur` (mini, showing whichever trip is currently selected —
-  matching one of the 9 curated routes or not, kept in sync from the calculator's own script via the
-  `evr-set-route` / `evr-set-custom-line` custom events).
+  homepage (mini), `/carte` (full, with the route list), and `/calculateur`
+  (mini, showing whichever trip is currently selected — matching one of the
+  14 curated routes or not, kept in sync from the calculator's own script
+  via the `evr-set-route` / `evr-set-custom-line` custom events). Its
+  `<style>` is `is:global` on purpose: the route list, swatches, and the
+  reference-layer toggle are all built by the client-side `<script>` via
+  `innerHTML`/`createElement`, and Astro's scoped-style attribute is only
+  ever applied to elements present in the component's own template — never
+  to nodes created later at runtime, so a scoped style here would silently
+  never match that markup (this is exactly how the route list's duration
+  ended up jammed against the destination city name with no line break:
+  `.evr-r-meta`'s `display:block` was defined but never actually applied).
+  If you add another dynamically-built element here, style it with an
+  inline `style` attribute or a class from this global block — never a
+  freshly-scoped one.
 - `src/data/reference-routes.ts` — a curated ~34-line reference layer of
   other European trains, day and night (Nightjet, European Sleeper,
   Snälltåget, Trenhotel, PKP/EuroNight, Caledonian Sleeper; TGV inOui,
@@ -168,11 +179,6 @@ of failing the build.
 
 ## Known gaps / next steps
 
-- **"Enregistrer l'itinéraire" is still a decorative button**, unlike
-  "Réserver chez l'opérateur" (wired to each curated route's real
-  `bookingUrl` in `routes.ts`) — nothing happens on click yet. Ask if you
-  want it wired to something (localStorage-based "save for later", a PDF
-  export, an email-to-self…).
 - **No live ticket pricing, unlike Rome2Rio.** Rome2Rio's per-operator fares
   come from commercial data-licensing deals; there's no free equivalent for
   that specifically. What this site shows is: its own cost estimate

@@ -9,7 +9,6 @@ import { formatDurationMin } from '../lib/calc';
 interface Props {
   mode: 'mini' | 'full';
   initialRouteId?: string | null;
-  filterable?: boolean;
   /** Read `?route=` from the browser URL at runtime and prefer it over
    * initialRouteId — needed because this is a statically-built site, so a
    * link like /carte?route=nightjet can't be honoured at build time. */
@@ -20,7 +19,7 @@ interface Props {
   showReferenceLayer?: boolean;
 }
 const {
-  mode, initialRouteId = null, filterable = mode === 'full',
+  mode, initialRouteId = null,
   respectQueryParam = mode === 'full', showReferenceLayer = mode === 'full',
 } = Astro.props;
 const uid = `map-${Math.random().toString(36).slice(2, 8)}`;
@@ -49,13 +48,6 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
     <aside class="evr-map-panel">
       <h2 class="evr-map-h">Le réseau, ligne par ligne</h2>
       <p class="evr-map-sub">{ROUTES.length} itinéraires parcourus et documentés. Sélectionnez une ligne pour voir ses étapes.</p>
-      {filterable && (
-        <div class="seg" style="width:100%;margin-bottom:16px">
-          <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="toutes" checked>Toutes</label>
-          <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="nuit">Trains de nuit</label>
-          <label class="seg-opt" style="flex:1;justify-content:center"><input type="radio" name={`${uid}-filter`} value="sans-reservation">Sans réservation</label>
-        </div>
-      )}
       <div class="evr-map-routes" data-routes-list></div>
 
       {showReferenceLayer && referenceRoutes.length > 0 && (
@@ -75,7 +67,16 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
   )}
 </div>
 
-<style>
+<style is:global>
+  /* Global on purpose: the route list, its swatches, and the reference-line
+     toggle are all built by client-side JS (innerHTML/createElement) in the
+     <script> below, and Astro's scoped-style attribute is only ever applied
+     to elements present in this component's own template — never to nodes
+     created later at runtime. A scoped style here would silently never
+     match any of that markup (which is exactly what happened: .evr-r-meta's
+     display:block was defined but never applied, so the duration ran
+     straight into the destination city name with no line break). Class
+     names are prefixed (evr-) precisely so going global is still safe. */
   .evr-map { position: relative; display: flex; height: 100%; min-height: 0; background: var(--color-bg); }
   .evr-map-stage { position: relative; flex: 1; min-width: 0; }
   .evr-map-svg { display: block; width: 100%; height: 100%; cursor: grab; }
@@ -152,8 +153,6 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
       const fromUrl = new URLSearchParams(location.search).get('route');
       if (fromUrl && ROUTES.some((r) => r.id === fromUrl)) selected = fromUrl;
     }
-    let activeFilter = 'toutes';
-
     // Lets an outside script (e.g. the calculator) drive which route this
     // map highlights, once it exists — id === null clears the selection.
     let mapReady = false;
@@ -237,11 +236,6 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
       });
     }
 
-    function visibleRoutes() {
-      if (activeFilter === 'toutes') return ROUTES;
-      return ROUTES.filter((r) => r.tag === activeFilter);
-    }
-
     const rg = g.append('g').attr('fill', 'none').attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
     rg.selectAll('path.hit').data(ROUTES).join('path').attr('class', 'hit')
       .attr('d', (d) => lineGen(d.pts)).attr('stroke', 'transparent').attr('stroke-width', 16)
@@ -274,9 +268,8 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
 
     function renderList() {
       if (!listEl) return;
-      const vis = visibleRoutes();
       listEl.innerHTML = '';
-      vis.forEach((d) => {
+      ROUTES.forEach((d) => {
         const btn = document.createElement('button');
         btn.type = 'button'; btn.className = 'evr-r-item'; btn.id = `${cfg.uid}-btn-${d.id}`;
         btn.setAttribute('aria-pressed', String(d.id === selected));
@@ -287,15 +280,13 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
         btn.addEventListener('mouseleave', () => emphasize(selected));
         listEl.appendChild(btn);
       });
-      // routes hidden by the filter still get de-emphasized on the map
       emphasize(selected);
     }
 
     function emphasize(id) {
-      const vis = new Set(visibleRoutes().map((r) => r.id));
       selectAll(rg.node().querySelectorAll('path.route'))
         .attr('stroke-width', (d) => (d.id === id ? 4.4 : 2.4))
-        .attr('opacity', (d) => (!vis.has(d.id) ? 0.08 : !id ? 0.9 : d.id === id ? 1 : 0.28));
+        .attr('opacity', (d) => (!id ? 0.9 : d.id === id ? 1 : 0.28));
     }
     function selectRoute(id) {
       selected = id;
@@ -311,13 +302,6 @@ const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, o
       tipEl.style.opacity = '1';
     }
     function hideTip() { tipEl.style.opacity = '0'; }
-
-    root.querySelectorAll(`input[name="${cfg.uid}-filter"]`).forEach((el) => {
-      el.addEventListener('change', (e) => {
-        activeFilter = e.target.value;
-        renderList();
-      });
-    });
 
     renderList();
     if (selected) selectRoute(selected);
