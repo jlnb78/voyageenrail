@@ -45,6 +45,12 @@ export type Route = {
   // multi-day, multi-train trip), this is omitted on purpose rather than
   // querying a search that can only return misleading partial results.
   dbStations?: { from: string; to: string };
+  // Where "Réserver chez l'opérateur" actually goes — the primary carrier's
+  // own booking site. For a multi-operator trip (several countries, no
+  // single through-ticket), this is the first leg's operator: the honest
+  // real starting point, not a claim that one site sells the whole thing.
+  // Never an affiliate/partner link — see /a-propos.
+  bookingUrl: string;
 };
 
 export const CITY_COORDS: Record<string, [number, number]> = {
@@ -82,6 +88,7 @@ export const ROUTES: Route[] = [
       { time: '10:08', place: 'Vienne Hbf', title: 'Arrivée · U1 vers le centre, 6 min', desc: 'Consigne à bagages disponible en gare.', kind: 'arrive' },
     ],
     dbStations: { from: 'Paris Est', to: 'Wien Hbf' },
+    bookingUrl: 'https://www.nightjet.com',
   },
   {
     id: 'iberie', name: 'Paris → Lisbonne', from: 'Paris', to: 'Lisbonne',
@@ -96,6 +103,7 @@ export const ROUTES: Route[] = [
       { time: 'Jour 2', place: 'Madrid', title: 'Nuit d’hôtel, puis correspondance', desc: 'Marge large recommandée : les correspondances ibériques ne sont pas garanties.', kind: 'stop' },
       { time: 'Jour 3', place: 'Lisbonne Santa Apolónia', title: 'Arrivée', desc: 'Trois jours, quatre trains, deux nuits d’hôtel — sans jamais décoller.', kind: 'arrive' },
     ],
+    bookingUrl: 'https://www.sncf-connect.com',
   },
   {
     id: 'barcelone', name: 'Paris → Barcelone', from: 'Paris', to: 'Barcelone',
@@ -110,6 +118,7 @@ export const ROUTES: Route[] = [
       { time: '14:26', place: 'Barcelone Sants', title: 'Arrivée · métro L5 vers le centre en 9 minutes', desc: 'Consigne à bagages au niveau −1, 5,20 € la journée. Les billets de métro s’achètent aux bornes du hall sud, moins de queue.', kind: 'arrive' },
     ],
     dbStations: { from: 'Paris Gare de Lyon', to: 'Barcelona Sants' },
+    bookingUrl: 'https://www.sncf-connect.com',
   },
   {
     id: 'riviera', name: 'La ligne lente de la Riviera', from: 'Marseille', to: 'Gênes',
@@ -125,6 +134,7 @@ export const ROUTES: Route[] = [
       { time: '16:18', place: 'Gênes Piazza Principe', title: 'Arrivée', desc: 'Huit heures, 38 € et la mer presque tout du long.', kind: 'arrive' },
     ],
     dbStations: { from: 'Marseille Saint-Charles', to: 'Genova Piazza Principe' },
+    bookingUrl: 'https://www.sncf-connect.com',
   },
   {
     id: 'italie', name: 'Zurich → Rome', from: 'Zurich', to: 'Rome',
@@ -140,6 +150,7 @@ export const ROUTES: Route[] = [
       { time: '13:10', place: 'Rome Termini', title: 'Arrivée', desc: 'Dix heures de train faisables avec deux enfants, si l’on choisit bien où s’asseoir.', kind: 'arrive' },
     ],
     dbStations: { from: 'Zürich HB', to: 'Roma Termini' },
+    bookingUrl: 'https://www.sbb.ch',
   },
   {
     id: 'nord', name: 'Amsterdam → Stockholm', from: 'Amsterdam', to: 'Stockholm',
@@ -154,6 +165,7 @@ export const ROUTES: Route[] = [
       { time: 'Jour 2 · 07:15', place: 'Copenhague', title: 'Correspondance via le pont de l’Øresund', desc: 'Le ferry autrefois nécessaire est désormais évité par le pont-tunnel.', kind: 'stop' },
       { time: 'Jour 2 · 14:50', place: 'Stockholm Centralstation', title: 'Arrivée', desc: 'Une couchette, un ferry évité, le trajet nord le plus simple à organiser.', kind: 'arrive' },
     ],
+    bookingUrl: 'https://www.nsinternational.com',
   },
   {
     id: 'berlin', name: 'Paris → Berlin de jour', from: 'Paris', to: 'Berlin',
@@ -168,6 +180,7 @@ export const ROUTES: Route[] = [
       { time: '16:00', place: 'Berlin Hbf', title: 'Arrivée', desc: 'Huit heures, direct au changement près, un seul billet.', kind: 'arrive' },
     ],
     dbStations: { from: 'Paris Est', to: 'Berlin Hbf' },
+    bookingUrl: 'https://www.bahn.de',
   },
   {
     id: 'danube', name: 'Vienne → Zagreb', from: 'Vienne', to: 'Zagreb',
@@ -182,6 +195,7 @@ export const ROUTES: Route[] = [
       { time: '15:20', place: 'Zagreb Glavni Kolodvor', title: 'Arrivée', desc: 'Sept heures pour 42 €, sans réservation obligatoire.', kind: 'arrive' },
     ],
     dbStations: { from: 'Wien Hbf', to: 'Zagreb Glavni kolodvor' },
+    bookingUrl: 'https://www.oebb.at',
   },
   {
     id: 'eurostar', name: 'Londres → Paris', from: 'Londres', to: 'Paris',
@@ -195,6 +209,7 @@ export const ROUTES: Route[] = [
       { time: '11:47', place: 'Paris Gare du Nord', title: 'Arrivée', desc: 'Deux heures seize, huit départs par jour.', kind: 'arrive' },
     ],
     dbStations: { from: 'London St Pancras', to: 'Paris Gare du Nord' },
+    bookingUrl: 'https://www.eurostar.com',
   },
 
   // — Added at the traveler's request, five more personally-ridden trips.
@@ -218,6 +233,7 @@ export const ROUTES: Route[] = [
       { time: '23:40', place: 'København H', title: 'Arrivée', desc: 'Horaires et prix à confirmer avec le voyageur.', kind: 'arrive' },
     ],
     dbStations: { from: 'Bordeaux Saint-Jean', to: 'Kobenhavn H' },
+    bookingUrl: 'https://www.sncf-connect.com',
   },
   {
     id: 'hambourg-paris', name: 'Hambourg → Paris', from: 'Hambourg', to: 'Paris',
@@ -232,6 +248,7 @@ export const ROUTES: Route[] = [
       { time: '17:50', place: 'Paris Est', title: 'Arrivée', desc: 'Horaires et prix à confirmer avec le voyageur.', kind: 'arrive' },
     ],
     dbStations: { from: 'Hamburg Hbf', to: 'Paris Est' },
+    bookingUrl: 'https://www.bahn.de',
   },
   {
     id: 'paris-zurich', name: 'Paris → Zurich', from: 'Paris', to: 'Zurich',
@@ -245,6 +262,7 @@ export const ROUTES: Route[] = [
       { time: '11:14', place: 'Zürich HB', title: 'Arrivée', desc: 'Prix à confirmer avec le voyageur — dès 69 € en tarif avancé.', kind: 'arrive' },
     ],
     dbStations: { from: 'Paris Gare de Lyon', to: 'Zürich HB' },
+    bookingUrl: 'https://www.tgv-lyria.com',
   },
   {
     id: 'paris-bale', name: 'Paris → Bâle', from: 'Paris', to: 'Bâle',
@@ -258,6 +276,7 @@ export const ROUTES: Route[] = [
       { time: '10:21', place: 'Basel SBB', title: 'Arrivée', desc: 'Prix à confirmer avec le voyageur — dès 49 € en tarif avancé.', kind: 'arrive' },
     ],
     dbStations: { from: 'Paris Gare de Lyon', to: 'Basel SBB' },
+    bookingUrl: 'https://www.tgv-lyria.com',
   },
   {
     id: 'paris-lucerne', name: 'Paris → Lucerne', from: 'Paris', to: 'Lucerne',
@@ -275,6 +294,7 @@ export const ROUTES: Route[] = [
       { time: 'Jour 2 · 17:30', place: 'Lucerne', title: 'Arrivée', desc: 'Horaires et prix à confirmer avec le voyageur.', kind: 'arrive' },
     ],
     dbStations: { from: 'Paris Gare de Lyon', to: 'Luzern' },
+    bookingUrl: 'https://www.sbb.ch',
   },
 ];
 

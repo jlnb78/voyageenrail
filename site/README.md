@@ -27,7 +27,10 @@ npm run preview   # serve the production build locally
   distance-based heuristic used for a non-curated calculator search (see
   below), clearly marked "à confirmer" in the itinerary rather than
   presented as fact. Replace with the real price paid, travel date, and
-  a récit once supplied — never invent those from here.
+  a récit once supplied — never invent those from here. Every route also
+  carries a `bookingUrl` — the primary carrier's real booking site, wired
+  to "Réserver chez l'opérateur" on `/calculateur`; never an affiliate
+  link (see `/a-propos`).
 - `src/data/co2-factors.ts` — the ADEME factors shown on `/a-propos`, read
   by the calculator. Revisit yearly.
 - `src/content/recits/*.md` — one Markdown file per récit (title, dates,
@@ -165,6 +168,11 @@ of failing the build.
 
 ## Known gaps / next steps
 
+- **"Enregistrer l'itinéraire" is still a decorative button**, unlike
+  "Réserver chez l'opérateur" (wired to each curated route's real
+  `bookingUrl` in `routes.ts`) — nothing happens on click yet. Ask if you
+  want it wired to something (localStorage-based "save for later", a PDF
+  export, an email-to-self…).
 - **No live ticket pricing, unlike Rome2Rio.** Rome2Rio's per-operator fares
   come from commercial data-licensing deals; there's no free equivalent for
   that specifically. What this site shows is: its own cost estimate

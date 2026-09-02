@@ -148,7 +148,7 @@ const cityHints = [...new Set([...HUBS, ...REFERENCE_EXTRA_HUBS].map(([, label])
           <Timeline steps={route.itinerary} />
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px">
-          <button type="button" class="btn btn-primary">Réserver chez l'opérateur</button>
+          <a href={route.bookingUrl} target="_blank" rel="noopener" class="btn btn-primary" data-out="bookLink">Réserver chez l'opérateur</a>
           <button type="button" class="btn btn-secondary">Enregistrer l'itinéraire</button>
           <a href="#" class="btn btn-ghost" data-out="recitLink" hidden>Lire le récit de cette ligne</a>
         </div>
@@ -327,6 +327,10 @@ const cityHints = [...new Set([...HUBS, ...REFERENCE_EXTRA_HUBS].map(([, label])
       recitLink.hidden = !slug;
       if (slug) recitLink.href = `/recits/${slug}`;
 
+      const bookLink = out('bookLink') as HTMLAnchorElement;
+      bookLink.href = curated.bookingUrl;
+      bookLink.hidden = false;
+
       const dbCard = out('dbcard')!;
       if (curated.dbStations) {
         dbCard.hidden = false;
@@ -354,6 +358,7 @@ const cityHints = [...new Set([...HUBS, ...REFERENCE_EXTRA_HUBS].map(([, label])
         statusEl.textContent = `Impossible de trouver ${!from ? `« ${fromText} »` : (viaText && !via) ? `« ${viaText} »` : `« ${toText} »`} — vérifiez l'orthographe ou essayez une gare voisine.`;
         out('itinCard')!.hidden = true;
         out('dbcard')!.hidden = true;
+        out('bookLink')!.hidden = true;
         lastResolvedTrip = null;
         return;
       }
@@ -368,6 +373,7 @@ const cityHints = [...new Set([...HUBS, ...REFERENCE_EXTRA_HUBS].map(([, label])
       out('estimateNote')!.hidden = false;
       out('estimateNote')!.textContent = "Distance à vol d'oiseau, estimation approximative — pas d'itinéraire documenté par nous pour cette combinaison.";
       out('recitLink')!.hidden = true;
+      out('bookLink')!.hidden = true;
 
       syncRouteMap(null);
       const points: [number, number][] = [[from.lon, from.lat], ...(via ? [[via.lon, via.lat] as [number, number]] : []), [to.lon, to.lat]];
