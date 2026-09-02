@@ -37,18 +37,20 @@ npm run preview   # serve the production build locally
   `/calculateur` (mini, showing whichever trip is currently selected —
   matching one of the 9 curated routes or not, kept in sync from the calculator's own script via the
   `evr-set-route` / `evr-set-custom-line` custom events).
-- `src/data/night-trains.ts` — a curated ~20-line reference layer of other
-  European night trains (Nightjet, European Sleeper, Snälltåget, Trenhotel,
-  PKP/EuroNight, Caledonian Sleeper…) that voyage en rail has **not**
+- `src/data/reference-routes.ts` — a curated ~34-line reference layer of
+  other European trains, day and night (Nightjet, European Sleeper,
+  Snälltåget, Trenhotel, PKP/EuroNight, Caledonian Sleeper; TGV inOui,
+  Eurostar, ICE, AVE, Frecciarossa, SBB…) that voyage en rail has **not**
   personally ridden. Drawn thin and grey on `/carte`, clearly labeled "non
   testées par nous", linking out to the operator instead of a récit — kept
   deliberately separate from `routes.ts` so nothing invented (itinerary,
   price, CO2) attaches to a line we haven't verified. Not exhaustive by
-  design (Back-on-Track tracks the full ~200-line European network); the
-  panel links there for anything beyond this list. Compiled from public
-  route announcements as of September 2026 — night train schedules change
-  often, re-verify before trusting an entry that's more than a few months
-  old.
+  design — day trains change little and are compiled from stable general
+  knowledge, but night trains shift yearly and were compiled from public
+  route announcements as of September 2026, so re-verify a night-train
+  entry more than a few months old. The panel links to Back-on-Track (full
+  night-train network) and Chronotrains (real reachability from any
+  station) for anyone who wants more than this curated sample.
 - `src/lib/calc.ts` — the cost/CO2/duration formulas behind `/calculateur`,
   shared between the server-rendered initial state and the client-side
   recompute script.

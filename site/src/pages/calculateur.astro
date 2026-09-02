@@ -4,7 +4,7 @@ import Nav from '../components/Nav.astro';
 import Timeline from '../components/Timeline.astro';
 import EuropeMap from '../components/EuropeMap.astro';
 import { getRoute, HUBS } from '../data/routes';
-import { NIGHT_TRAIN_EXTRA_HUBS } from '../data/night-trains';
+import { REFERENCE_EXTRA_HUBS } from '../data/reference-routes';
 import { calculate, formatEur, formatKg, formatDurationMin } from '../lib/calc';
 import { CO2_FACTORS, CAR_G_PER_KM_VEHICLE } from '../data/co2-factors';
 
@@ -17,7 +17,7 @@ const maxBar = Math.max(result.train.co2Kg, result.avion.co2Kg, result.voiture.c
 // Suggestions only — any city with a station in Europe works, resolved live
 // against Deutsche Bahn's own station search (src/lib/db-journeys.ts). This
 // isn't a restriction to voyage en rail's own 9 lines: type any two cities.
-const cityHints = [...new Set([...HUBS, ...NIGHT_TRAIN_EXTRA_HUBS].map(([, label]) => label))].sort();
+const cityHints = [...new Set([...HUBS, ...REFERENCE_EXTRA_HUBS].map(([, label]) => label))].sort();
 ---
 <BaseLayout title="Calculateur coût / CO2 — voyage en rail" description="Comparez le coût, la durée et le CO2 d'un trajet en train, en avion et en voiture entre deux villes d'Europe de votre choix.">
   <Nav current="calculateur" />

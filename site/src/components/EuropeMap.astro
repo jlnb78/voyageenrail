@@ -3,7 +3,7 @@
 // mockup's europe-map.html (D3 + Natural Earth via world-atlas topojson) into
 // an inline component driven by src/data/routes.ts, instead of an iframe.
 import { ROUTES, CITY_COORDS, HUBS } from '../data/routes';
-import { NIGHT_TRAIN_REFS, NIGHT_TRAIN_EXTRA_COORDS, NIGHT_TRAIN_EXTRA_HUBS } from '../data/night-trains';
+import { REFERENCE_ROUTES, REFERENCE_EXTRA_COORDS, REFERENCE_EXTRA_HUBS } from '../data/reference-routes';
 import { formatDurationMin } from '../lib/calc';
 
 interface Props {
@@ -14,14 +14,14 @@ interface Props {
    * initialRouteId — needed because this is a statically-built site, so a
    * link like /carte?route=nightjet can't be honoured at build time. */
   respectQueryParam?: boolean;
-  /** Show the "other night trains in Europe, not ridden by us" reference
-   * layer + its toggle. Off by default on the mini homepage hero to keep it
+  /** Show the "other lines in Europe, not ridden by us" reference layer +
+   * its toggle. Off by default on the mini homepage hero to keep it
    * uncluttered — this is a /carte feature. */
-  showNightTrains?: boolean;
+  showReferenceLayer?: boolean;
 }
 const {
   mode, initialRouteId = null, filterable = mode === 'full',
-  respectQueryParam = mode === 'full', showNightTrains = mode === 'full',
+  respectQueryParam = mode === 'full', showReferenceLayer = mode === 'full',
 } = Astro.props;
 const uid = `map-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -31,9 +31,9 @@ const routeSummaries = ROUTES.map((r) => {
     : `${formatDurationMin(r.trainDurationMin)} · dès ${r.trainPriceBase2nd} €`;
   return { id: r.id, name: r.name, meta, accent: r.accent, tag: r.tag, pts: r.mapPts };
 });
-const allCoords = { ...CITY_COORDS, ...NIGHT_TRAIN_EXTRA_COORDS };
-const allHubs = showNightTrains ? [...HUBS, ...NIGHT_TRAIN_EXTRA_HUBS] : HUBS;
-const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, operator: n.operator, note: n.note, url: n.infoUrl, pts: n.mapPts }));
+const allCoords = { ...CITY_COORDS, ...REFERENCE_EXTRA_COORDS };
+const allHubs = showReferenceLayer ? [...HUBS, ...REFERENCE_EXTRA_HUBS] : HUBS;
+const referenceRoutes = REFERENCE_ROUTES.map((n) => ({ id: n.id, name: n.name, operator: n.operator, note: n.note, url: n.infoUrl, pts: n.mapPts, kind: n.kind }));
 ---
 <div class:list={["evr-map", mode]} data-uid={uid}>
   <div class="evr-map-stage">
@@ -58,15 +58,16 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
       )}
       <div class="evr-map-routes" data-routes-list></div>
 
-      {showNightTrains && nightTrainRefs.length > 0 && (
+      {showReferenceLayer && referenceRoutes.length > 0 && (
         <div class="evr-nt-block">
           <label class="evr-nt-toggle">
             <input type="checkbox" data-nt-toggle checked>
-            <span>Autres lignes de nuit en Europe <em>(non testées par nous)</em></span>
+            <span>Autres lignes en Europe, jour et nuit <em>(non testées par nous)</em></span>
           </label>
           <p class="evr-nt-sub">
-            {nightTrainRefs.length} lignes actuelles, tracées en gris — cliquez pour ouvrir la page de l'opérateur.
-            Liste non exhaustive : <a href="https://back-on-track.eu/night-train-map/" target="_blank" rel="noopener">carte complète sur Back-on-Track ↗</a>
+            {referenceRoutes.length} lignes actuelles, tracées en gris — cliquez pour ouvrir la page de l'opérateur.
+            Liste non exhaustive : <a href="https://back-on-track.eu/night-train-map/" target="_blank" rel="noopener">trains de nuit sur Back-on-Track ↗</a>
+            · <a href="https://chronotrains.com" target="_blank" rel="noopener">tout le réseau sur Chronotrains ↗</a>
           </p>
         </div>
       )}
@@ -115,11 +116,11 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
   .evr-nt-sub a { color: var(--color-accent); font-weight: 600; }
 </style>
 
-<script define:vars={{ uid, mode, initialRouteId, respectQueryParam, cityCoords: allCoords, hubs: allHubs, routes: routeSummaries, nightTrains: showNightTrains ? nightTrainRefs : [] }}>
+<script define:vars={{ uid, mode, initialRouteId, respectQueryParam, cityCoords: allCoords, hubs: allHubs, routes: routeSummaries, referenceRoutes: showReferenceLayer ? referenceRoutes : [] }}>
   // Deferred to a module-level init so multiple maps per page (home + carte
   // are never on the same page, but keep it safe) don't collide.
   window.__evrMapInit = window.__evrMapInit || [];
-  window.__evrMapInit.push({ uid, mode, initialRouteId, cityCoords, hubs, routes, nightTrains });
+  window.__evrMapInit.push({ uid, mode, initialRouteId, cityCoords, hubs, routes, referenceRoutes });
 </script>
 
 <script>
@@ -213,19 +214,20 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
         .attr('fill', '#f5ead8').attr('stroke', '#8c491a').attr('stroke-width', 2.2);
     }
 
-    // Reference layer: other European night trains, not ridden by us — thin
-    // grey, drawn under our own routes, no itinerary/price/CO2 attached.
-    const NIGHT_TRAINS = cfg.nightTrains || [];
-    if (NIGHT_TRAINS.length) {
+    // Reference layer: other European lines (day and night), not ridden by
+    // us — thin grey, drawn under our own routes, no itinerary/price/CO2
+    // attached.
+    const REFERENCE_LINES = cfg.referenceRoutes || [];
+    if (REFERENCE_LINES.length) {
       const ntg = g.append('g').attr('class', 'evr-nt-layer')
         .attr('fill', 'none').attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
-      ntg.selectAll('path.nt-hit').data(NIGHT_TRAINS).join('path').attr('class', 'nt-hit')
+      ntg.selectAll('path.nt-hit').data(REFERENCE_LINES).join('path').attr('class', 'nt-hit')
         .attr('d', (d) => lineGen(d.pts)).attr('stroke', 'transparent').attr('stroke-width', 14)
         .style('cursor', 'pointer')
-        .on('mousemove', (e, d) => showTip(e, `${d.name} — ${d.operator} (non testée par nous)`))
+        .on('mousemove', (e, d) => showTip(e, `${d.name} — ${d.operator} (${d.kind === 'nuit' ? 'train de nuit' : 'train de jour'}, non testée par nous)`))
         .on('mouseleave', hideTip)
         .on('click', (e, d) => window.open(d.url, '_blank', 'noopener'));
-      ntg.selectAll('path.nt-route').data(NIGHT_TRAINS).join('path').attr('class', 'nt-route')
+      ntg.selectAll('path.nt-route').data(REFERENCE_LINES).join('path').attr('class', 'nt-route')
         .style('pointer-events', 'none')
         .attr('d', (d) => lineGen(d.pts))
         .attr('stroke', '#a19786').attr('stroke-width', 1.4)
@@ -252,7 +254,7 @@ const nightTrainRefs = NIGHT_TRAIN_REFS.map((n) => ({ id: n.id, name: n.name, op
       .attr('d', (d) => lineGen(d.pts))
       .attr('stroke', (d) => (d.accent === 1 ? A1 : A2)).attr('stroke-width', 2.4).attr('opacity', 0.9);
 
-    const stops = [...new Set([...ROUTES.flatMap((r) => r.pts), ...NIGHT_TRAINS.flatMap((r) => r.pts)])];
+    const stops = [...new Set([...ROUTES.flatMap((r) => r.pts), ...REFERENCE_LINES.flatMap((r) => r.pts)])];
     const cg = g.append('g').style('pointer-events', 'none');
     cg.selectAll('circle').data(stops).join('circle')
       .attr('cx', (d) => projection(C[d])[0]).attr('cy', (d) => projection(C[d])[1])
